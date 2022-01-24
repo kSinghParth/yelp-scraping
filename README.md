@@ -9,7 +9,7 @@ Important Git repo with Yelp dtaset examples and conversion: https://github.com/
 
 To access the API of yelp, I have registered an app on the yelp developer support website. Accordingly, I have received an API key with a certain usage limit.
 
-AppName on yelp - Yelp-Scraping-USC-2022
+### AppName on yelp - Yelp-Scraping-USC-2022
 
-Api Usage
+### Api Usage
 ![Api Usage](/images/api_usage.png)
