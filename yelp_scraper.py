@@ -6,7 +6,10 @@ import pprint
 import requests
 import sys
 import urllib
+import yaml
 
+from constants import API_HOST, SEARCH_PATH, BUSINESS_PATH, DEFAULT_TERM, DEFAULT_LOCATION, SEARCH_LIMIT 
+from connector import Connector
 
 # This client code can run on Python 2.x or 3.x.  Your imports can be
 # simpler if you only need one of those.
@@ -21,25 +24,9 @@ except ImportError:
     from urllib import quote
     from urllib import urlencode
 
-
-# Yelp Fusion no longer uses OAuth as of December 7, 2017.
-# You no longer need to provide Client ID to fetch Data
-# It now uses private keys to authenticate requests (API Key)
-# You can find it on
 # https://www.yelp.com/developers/v3/manage_app
-API_KEY = None 
-
-
-# API constants, you shouldn't have to change these.
-API_HOST = 'https://api.yelp.com'
-SEARCH_PATH = '/v3/businesses/search'
-BUSINESS_PATH = '/v3/businesses/'  # Business ID will come after slash.
-
-
-# Defaults for our simple example.
-DEFAULT_TERM = 'dinner'
-DEFAULT_LOCATION = 'San Francisco, CA'
-SEARCH_LIMIT = 3
+with open("conf.yaml", 'r') as stream:
+    API_KEY = yaml.safe_load(stream).get('api_key')
 
 
 def request(host, path, api_key, url_params=None):
@@ -145,4 +132,8 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    connector = Connector()
+    users = connector.execute_read_query()
+    for user in users:
+        print(user)
+    # main()
