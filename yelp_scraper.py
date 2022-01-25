@@ -28,6 +28,8 @@ except ImportError:
 with open("conf.yaml", 'r') as stream:
     API_KEY = yaml.safe_load(stream).get('api_key')
 
+connector = None
+
 
 def request(host, path, api_key, url_params=None):
     """Given your API_KEY, send a GET request to the API.
@@ -102,10 +104,15 @@ def query_api(term, location):
     print(u'{0} businesses found, querying business info ' \
         'for the top result "{1}" ...'.format(
             len(businesses), business_id))
-    response = get_business(API_KEY, business_id)
 
-    print(u'Result for business "{0}" found:'.format(business_id))
-    pprint.pprint(response, indent=2)
+    print(type(businesses[0]))
+
+    for business in businesses:
+        connector.enter_business_record(business)
+    # response = get_business(API_KEY, business_id)
+
+    # print(u'Result for business "{0}" found:'.format(business_id))
+    # pprint.pprint(response, indent=2)
 
 
 def main():
@@ -133,7 +140,4 @@ def main():
 
 if __name__ == '__main__':
     connector = Connector()
-    users = connector.execute_read_query()
-    for user in users:
-        print(user)
-    # main()
+    main()

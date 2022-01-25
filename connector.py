@@ -2,7 +2,7 @@ import mysql.connector
 from mysql.connector import Error
 import yaml
 
-class Connector:
+class Connector():
 
     DB_SERVER = None
     USER_NAME = None
@@ -10,6 +10,7 @@ class Connector:
     DB_NAME = None
 
     connection = None
+
 
     def __init__(self):
         with open("conf.yaml", 'r') as stream:
@@ -19,27 +20,7 @@ class Connector:
             USER_PASSWORD = yaml_loader.get('user_password')
             DB_NAME = yaml_loader.get('db_name')
         self.connection = self.create_connection(DB_SERVER, USER_NAME, USER_PASSWORD, DB_NAME)
-        
-    def close(self):
-        self.connection.close()
 
-    def execute_read_query(self):
-        cursor = self.connection.cursor()
-        result = None
-        try:
-            cursor.execute(query)
-            result = cursor.fetchall()
-            return result
-        except Error as e:
-            print(f"The error '{e}' occurred")
-
-    def enter_record(self):
-        sql = "INSERT INTO dummy ( id, nam ) VALUES ( %s, %s )"
-        val = [(1, "nam 1")]
-
-        cursor = self.connection.cursor()
-        cursor.executemany(sql, val)
-        self.connection.commit()
 
     def create_connection(self, host_name, user_name, user_password, db_name):
         try:
@@ -54,3 +35,27 @@ class Connector:
             print(f"The error '{e}' occurred")
         return connection
 
+
+    def close(self):
+        self.connection.close()
+    
+
+    def enter_business_record(self, business):
+        print(business['name'])
+        sql = "INSERT INTO yelp_business ( business_name ) VALUE ( %s )"
+        val = [business["name"]]
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, val)
+        self.connection.commit()
+
+
+    def execute_read_query(self):
+        cursor = self.connection.cursor()
+        result = None
+        try:
+            cursor.execute("SELECT * FROM yelp_business")
+            result = cursor.fetchall()
+            return result
+        except Error as e:
+            print(f"The error '{e}' occurred")

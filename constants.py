@@ -7,4 +7,4 @@ BUSINESS_PATH = '/v3/businesses/'
 # Defaults for our simple example.
 DEFAULT_TERM = 'dinner'
 DEFAULT_LOCATION = 'Los Angeles, CA'
-SEARCH_LIMIT = 3
+SEARCH_LIMIT = 50
