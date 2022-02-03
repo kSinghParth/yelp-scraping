@@ -1,6 +1,9 @@
 import mysql.connector
 from mysql.connector import Error
 import yaml
+import argparse
+
+from util import *
 
 class Connector():
 
@@ -39,11 +42,28 @@ class Connector():
     def close(self):
         self.connection.close()
     
+    def clean_db(self):
+        print('Cleaning')
+        sql = "DELETE FROM yelp_business"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql)
+        self.connection.commit()
 
     def enter_business_record(self, business):
-        print(business['name'])
-        sql = "INSERT INTO yelp_business ( business_name ) VALUE ( %s )"
-        val = [business["name"]]
+        sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating,'\
+            ' zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
+            'open, phone, categories, alias, cover_img_url, transactions ) '\
+            'VALUE ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )'
+        
+        val = [business['id'], business['name'], business['review_count'], 
+            business['rating'], business['zip_code'], business['city'], 
+            business['state'], business['country'], business['url'],
+            business['latitude'], business['longitude'],
+            business['address'], business['price'], business['open'], 
+            business['phone'], business['categories_str'], business['alias'],
+            business['image_url'], business['transactions_str']
+            ]
 
         cursor = self.connection.cursor()
         cursor.execute(sql, val)
@@ -59,3 +79,16 @@ class Connector():
             return result
         except Error as e:
             print(f"The error '{e}' occurred")
+
+
+if __name__ == '__main__':
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', '--delete', dest='delete', default=False,
+                        type=bool, help='Delete the db entries')
+    input_values = parser.parse_args()
+
+    connector = Connector()
+
+    if input_values.delete:
+        connector.clean_db()

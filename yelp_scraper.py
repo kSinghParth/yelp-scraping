@@ -8,8 +8,9 @@ import sys
 import urllib
 import yaml
 
-from constants import API_HOST, SEARCH_PATH, BUSINESS_PATH, DEFAULT_TERM, DEFAULT_LOCATION, SEARCH_LIMIT 
+from constants import *
 from connector import Connector
+from util import santize_business_object
 
 # This client code can run on Python 2.x or 3.x.  Your imports can be
 # simpler if you only need one of those.
@@ -86,30 +87,32 @@ def get_business(api_key, business_id):
 
 
 def query_api(term, location):
+    connector.clean_db()
     """Queries the API by the input values from the user.
     Args:
         term (str): The search term to query.
         location (str): The location of the business to query.
     """
-    response = search(API_KEY, term, location)
+    # response = search(API_KEY, term, location)
 
-    businesses = response.get('businesses')
+    # businesses = response.get('businesses')
 
-    if not businesses:
-        print(u'No businesses for {0} in {1} found.'.format(term, location))
-        return
+    # if not businesses:
+    #     print(u'No businesses for {0} in {1} found.'.format(term, location))
+    #     return
 
-    business_id = businesses[0]['id']
+    # print(u'{0} businesses found, querying business info ' \
+    #     'for the top result "{1}" ...'.format(
+    #         len(businesses), business_id))
+    
+    # for business in businesses:
+    #     connector.enter_business_record(santize_business_object(business))
+    
 
-    print(u'{0} businesses found, querying business info ' \
-        'for the top result "{1}" ...'.format(
-            len(businesses), business_id))
+    business_id = 'RVbZaawgEGmto6TxOoVBdQ'
 
-    print(type(businesses[0]))
-
-    for business in businesses:
-        connector.enter_business_record(business)
-    # response = get_business(API_KEY, business_id)
+    response = get_business(API_KEY, business_id)
+    print(response)
 
     # print(u'Result for business "{0}" found:'.format(business_id))
     # pprint.pprint(response, indent=2)
