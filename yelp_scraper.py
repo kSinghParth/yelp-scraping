@@ -93,20 +93,20 @@ def query_api(term, location):
         term (str): The search term to query.
         location (str): The location of the business to query.
     """
-    # response = search(API_KEY, term, location)
+    response = search(API_KEY, term, location)
 
-    # businesses = response.get('businesses')
+    businesses = response.get('businesses')
 
-    # if not businesses:
-    #     print(u'No businesses for {0} in {1} found.'.format(term, location))
-    #     return
+    if not businesses:
+        print(u'No businesses for {0} in {1} found.'.format(term, location))
+        return
 
-    # print(u'{0} businesses found, querying business info ' \
-    #     'for the top result "{1}" ...'.format(
-    #         len(businesses), business_id))
+    print(u'{0} businesses found, querying business info ' \
+        'for the top result "{1}" ...'.format(
+            len(businesses), business_id))
     
-    # for business in businesses:
-    #     connector.enter_business_record(santize_business_object(business))
+    for business in businesses:
+        connector.enter_business_record(santize_business_object(business))
     
 
     business_id = 'RVbZaawgEGmto6TxOoVBdQ'
