@@ -100,17 +100,12 @@ def query_api(term, location):
     if not businesses:
         print(u'No businesses for {0} in {1} found.'.format(term, location))
         return
-
-    print(u'{0} businesses found, querying business info ' \
-        'for the top result "{1}" ...'.format(
-            len(businesses), business_id))
     
     for business in businesses:
         connector.enter_business_record(santize_business_object(business))
     
 
     business_id = 'RVbZaawgEGmto6TxOoVBdQ'
-
     response = get_business(API_KEY, business_id)
     print(response)
 
