@@ -54,7 +54,7 @@ def recursive_search(coordinates, level):
         logger.info("Coordinate record exists. Skipping");
         return
 
-    if(radius<50):
+    if(radius*1000<50):
         return
 
     response = search(latitude = mid_lat, longitude = mid_lng, radius = int(math.ceil(radius*1000)))
