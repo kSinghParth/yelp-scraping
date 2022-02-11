@@ -68,7 +68,7 @@ def recursive_search(coordinates, level):
                 connector.enter_business_record(sanitize_business_object(business))
         
         recur_crdnts = []
-        if len(businesses) >= 50:
+        if len(businesses) >= 10:
             recur_crdnts.append({'north_lat': n_l, 'east_lng': e_l, 'south_lat': mid_lat,'west_lng': mid_lng})
             recur_crdnts.append({'north_lat': mid_lat, 'east_lng': mid_lng, 'south_lat': s_l,'west_lng': w_l})
             recur_crdnts.append({'north_lat': n_l, 'east_lng': mid_lng, 'south_lat': mid_lat,'west_lng': w_l})
