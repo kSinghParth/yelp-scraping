@@ -78,7 +78,7 @@ def recursive_search(coordinates, level):
                  recursive_search(crdnt, level + 1)
     else:
         logger.info(u'No businesses found for lat, lng: {0}, {1}'.format(mid_lat, mid_lng))
-        logger.info('Error: ' + response)
+        logger.info('Error: ' + str(response))
         businesses = []
     
     connector.enter_coordinate_record(mid_lat, mid_lng, radius, n_l, s_l, e_l, w_l, len(businesses), level)
