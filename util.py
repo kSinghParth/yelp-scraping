@@ -1,5 +1,6 @@
 from datetime import datetime
-
+from geopy import distance
+from logger import logger
 
 def sanitize_str(unsanitized_str):
 	return str(unsanitized_str or '')
@@ -92,7 +93,7 @@ def santize_business_object(business):
 	except:
 		categories_str = None
 	try:
-		alias = not business['alias']
+		alias = business['alias']
 	except:
 		alias = None
 	try:
@@ -126,3 +127,31 @@ def santize_business_object(business):
         'image_url': image_url,
         'transactions_str': transactions_str
         }
+
+
+def distance_calc(coordinates):
+
+	n_l = coordinates['north_lat']
+	s_l = coordinates['south_lat']
+	e_l = coordinates['east_lng']
+	w_l = coordinates['west_lng']
+	coords_1 = (n_l, e_l)
+	coords_2 = (s_l, w_l)
+
+	dist = distance.distance(coords_1, coords_2).km
+	logger.info("Radius is {} for coordinates: {}".format(dist, coordinate_string(coordinates)))
+	return dist
+
+def is_valid_distance(coordinates, valid_radius_limit):
+	if distance_calc(coordinates)/2.0 > valid_radius_limit:
+		return False
+	else:
+		return True
+
+def coordinate_string(coordinate):
+    return "North Latitude: "+str(coordinate['north_lat'])+'  , South Latitude: '+str(coordinate['south_lat'])+'  , East Longitude: '+str(coordinate['east_lng'])+'  , West Longitude: '+str(coordinate['west_lng'])
+
+def business_in_US(business):
+	if business['location']['country']=='US':
+		return True
+	return False;

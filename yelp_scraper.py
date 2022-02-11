@@ -1,63 +1,18 @@
-from __future__ import print_function
-
 import argparse
 import json
-import pprint
-import requests
 import sys
 import urllib
-import yaml
+import math
 
 from constants import *
 from connector import Connector
-from util import santize_business_object
-
-# This client code can run on Python 2.x or 3.x.  Your imports can be
-# simpler if you only need one of those.
-try:
-    # For Python 3.0 and later
-    from urllib.error import HTTPError
-    from urllib.parse import quote
-    from urllib.parse import urlencode
-except ImportError:
-    # Fall back to Python 2's urllib2 and urllib
-    from urllib2 import HTTPError
-    from urllib import quote
-    from urllib import urlencode
-
-# https://www.yelp.com/developers/v3/manage_app
-with open("conf.yaml", 'r') as stream:
-    API_KEY = yaml.safe_load(stream).get('api_key')
+from requester import *
+from util import *
+from logger import logger
 
 connector = None
 
-
-def request(host, path, api_key, url_params=None):
-    """Given your API_KEY, send a GET request to the API.
-    Args:
-        host (str): The domain host of the API.
-        path (str): The path of the API after the domain.
-        API_KEY (str): Your API Key.
-        url_params (dict): An optional set of query parameters in the request.
-    Returns:
-        dict: The JSON response from the request.
-    Raises:
-        HTTPError: An error occurs from the HTTP request.
-    """
-    url_params = url_params or {}
-    url = '{0}{1}'.format(host, quote(path.encode('utf8')))
-    headers = {
-        'Authorization': 'Bearer %s' % api_key,
-    }
-
-    print(u'Querying {0} ...'.format(url))
-
-    response = requests.request('GET', url, headers=headers, params=url_params)
-
-    return response.json()
-
-
-def search(api_key, term, location):
+def search(term=None, location=None, latitude=None, longitude=None, radius=None):
     """Query the Search API by a search term and location.
     Args:
         term (str): The search term passed to the API.
@@ -67,14 +22,64 @@ def search(api_key, term, location):
     """
 
     url_params = {
-        'term': term.replace(' ', '+'),
-        'location': location.replace(' ', '+'),
         'limit': SEARCH_LIMIT
     }
-    return request(API_HOST, SEARCH_PATH, api_key, url_params=url_params)
+    if latitude:
+        url_params['latitude']= latitude
+    if longitude:
+        url_params['longitude']= longitude
+    if radius:
+        url_params['radius']= radius
+    if term:
+        url_params['term']= term
+    if location:
+        url_params['location']= location
+    
+    return request(API_HOST, SEARCH_PATH, url_params=url_params)
 
+def recursive_search(coordinates, level):
+    # logging.info(coordinates)
+    n_l = coordinates['north_lat']
+    s_l = coordinates['south_lat']
+    e_l = coordinates['east_lng']
+    w_l = coordinates['west_lng']
+    mid_lat = (n_l + s_l)/2
+    mid_lng = (e_l + w_l)/2
+    radius = distance_calc(coordinates)/2.0
+    logger.info("Coordinates: " + str(coordinates))
+    logger.info("Centre: " + str(mid_lat) + "," + str(mid_lng))
+    logger.info("Radius is : " + str(radius))
 
-def get_business(api_key, business_id):
+    if connector.does_coordinate_record_exist(mid_lat, mid_lng, radius):
+        logger.info("Coordinate record exists. Skipping");
+        return
+    
+    response = search(latitude = mid_lat, longitude = mid_lng, radius = int(math.ceil(radius*1000)))
+    # logging.info(response)
+    businesses = response.get('businesses')
+    
+    if businesses:
+        logger.info("Businesses count: " +  str(len(businesses)))
+        for business in businesses:
+            if business_in_US(business):
+                connector.enter_business_record(santize_business_object(business))
+        
+        recur_crdnts = []
+        if len(businesses) >= 50:
+            recur_crdnts.append({'north_lat': n_l, 'east_lng': e_l, 'south_lat': mid_lat,'west_lng': mid_lng})
+            recur_crdnts.append({'north_lat': mid_lat, 'east_lng': mid_lng, 'south_lat': s_l,'west_lng': w_l})
+            recur_crdnts.append({'north_lat': n_l, 'east_lng': mid_lng, 'south_lat': mid_lat,'west_lng': w_l})
+            recur_crdnts.append({'north_lat': mid_lat, 'east_lng': e_l, 'south_lat': s_l,'west_lng': mid_lng})
+
+            for crdnt in recur_crdnts:
+                 recursive_search(crdnt, level + 1)
+    else:
+        logger.info(u'No businesses found for lat, lng: {0}, {1}'.format(mid_lat, mid_lng))
+        businesses = []
+    
+    connector.enter_coordinate_record(mid_lat, mid_lng, radius, n_l, s_l, e_l, w_l, len(businesses), level)
+
+def get_business( business_id):
     """Query the Business API by a business ID.
     Args:
         business_id (str): The ID of the business to query.
@@ -83,34 +88,47 @@ def get_business(api_key, business_id):
     """
     business_path = BUSINESS_PATH + business_id
 
-    return request(API_HOST, business_path, api_key)
+    return request(API_HOST, business_path)
 
 
-def query_api(term, location):
+def query_api(term=None, location=None, coordinates=None):
     connector.clean_db()
     """Queries the API by the input values from the user.
     Args:
         term (str): The search term to query.
         location (str): The location of the business to query.
     """
-    response = search(API_KEY, term, location)
 
-    businesses = response.get('businesses')
+    if coordinates:
+        temp_crdnt = coordinates.copy()
+        while len(temp_crdnt) > 0:
+            logger.info("Current coordinates array: " + str(temp_crdnt))
+            crdnt = temp_crdnt.pop()
+            if is_valid_distance(crdnt, RADIUS_LIMIT):
+                logger.info("Radius is Okay. " + coordinate_string(crdnt))
+                response = recursive_search(coordinates = crdnt, level = 1)
+            else:
+                logger.info("Radius more than limit. " + coordinate_string(crdnt))
+                n_l = crdnt['north_lat']
+                s_l = crdnt['south_lat']
+                e_l = crdnt['east_lng']
+                w_l = crdnt['west_lng']
+                mid_lat = (n_l + s_l)/2
+                mid_lng = (e_l + w_l)/2
+                temp_crdnt.append({'north_lat': n_l, 'east_lng': e_l, 'south_lat': mid_lat,'west_lng': mid_lng})
+                temp_crdnt.append({'north_lat': mid_lat, 'east_lng': mid_lng, 'south_lat': s_l,'west_lng': w_l})
+                temp_crdnt.append({'north_lat': n_l, 'east_lng': mid_lng, 'south_lat': mid_lat,'west_lng': w_l})
+                temp_crdnt.append({'north_lat': mid_lat, 'east_lng': e_l, 'south_lat': s_l,'west_lng': mid_lng})
+        
+    else:
+        response = search( term, location)
 
-    if not businesses:
-        print(u'No businesses for {0} in {1} found.'.format(term, location))
-        return
     
-    for business in businesses:
-        connector.enter_business_record(santize_business_object(business))
-    
 
-    business_id = 'RVbZaawgEGmto6TxOoVBdQ'
-    response = get_business(API_KEY, business_id)
-    print(response)
+    # business_id = 'RVbZaawgEGmto6TxOoVBdQ'
+    # response = get_business(API_KEY, business_id)
+    # logging.info(response)
 
-    # print(u'Result for business "{0}" found:'.format(business_id))
-    # pprint.pprint(response, indent=2)
 
 
 def main():
@@ -125,7 +143,9 @@ def main():
     input_values = parser.parse_args()
 
     try:
-        query_api(input_values.term, input_values.location)
+        # query_api(input_values.term, input_values.location)
+        query_api(None, None, coordinates)
+
     except HTTPError as error:
         sys.exit(
             'Encountered HTTP error {0} on {1}:\n {2}\nAbort program.'.format(

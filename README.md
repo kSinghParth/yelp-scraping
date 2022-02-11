@@ -14,3 +14,7 @@ Yelp-Scraping-USC-2022
 
 ### Api Usage
 ![Api Usage](/images/api_usage.png)
+
+### Coverage of the current boundary for LA
+
+![Api Usage](/images/coverage.png)

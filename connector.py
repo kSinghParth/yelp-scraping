@@ -4,6 +4,7 @@ import yaml
 import argparse
 
 from util import *
+from logger import logger
 
 class Connector():
 
@@ -33,9 +34,9 @@ class Connector():
             passwd=user_password,
             database=db_name
             )
-            print("Connection to MySQL DB successful")
+            logger.info("Connection to MySQL DB successful")
         except Error as e:
-            print(f"The error '{e}' occurred")
+            logger.info(f"The error '{e}' occurred")
         return connection
 
 
@@ -43,31 +44,51 @@ class Connector():
         self.connection.close()
     
     def clean_db(self):
-        print('Cleaning')
-        sql = "DELETE FROM yelp_business"
+        logger.info('Cleaning')
 
         cursor = self.connection.cursor()
-        cursor.execute(sql)
+        cursor.execute('DELETE FROM yelp_business')
+        cursor.execute('DELETE FROM coordinates')
         self.connection.commit()
 
     def enter_business_record(self, business):
         sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating,'\
             ' zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
-            'open, phone, categories, alias, cover_img_url, transactions ) '\
-            'VALUE ( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )'
+            'open, phone, categories, cover_img_url, transactions ) '\
+            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'WHERE NOT EXISTS (SELECT 1 FROM yelp_business WHERE business_id = %s) LIMIT 1;'
         
         val = [business['id'], business['name'], business['review_count'], 
             business['rating'], business['zip_code'], business['city'], 
             business['state'], business['country'], business['url'],
             business['latitude'], business['longitude'],
             business['address'], business['price'], business['open'], 
-            business['phone'], business['categories_str'], business['alias'],
-            business['image_url'], business['transactions_str']
+            business['phone'], business['categories_str'],
+            business['image_url'], business['transactions_str'],
+            business['id']
             ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def enter_coordinate_record(self, latitude, longitude, radius, n_l, s_l, e_l, w_l, quantity, level):
+        sql = 'INSERT INTO coordinates ( lat, lng, radius, north_lat, south_lat, east_lng, west_lng, quantity, level ) '\
+            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s '
+        val = [str(latitude), str(longitude), str(radius), str(n_l), str(s_l), str(e_l), str(w_l), quantity, level]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def does_coordinate_record_exist(self, latitude, longitude, radius):
+        sql = "SELECT 1 FROM coordinates WHERE lat = %s AND lng = %s AND radius = %s"
+        val = [latitude, longitude, radius]
 
         cursor = self.connection.cursor()
         cursor.execute(sql, val)
-        self.connection.commit()
+        res = cursor.fetchone()
+        if res!=None:
+            return res[0]==1
+        return False
 
 
     def execute_read_query(self):
@@ -78,7 +99,7 @@ class Connector():
             result = cursor.fetchall()
             return result
         except Error as e:
-            print(f"The error '{e}' occurred")
+            logger.info(f"The error '{e}' occurred")
 
 
 if __name__ == '__main__':
