@@ -53,7 +53,10 @@ def recursive_search(coordinates, level):
     if connector.does_coordinate_record_exist(mid_lat, mid_lng, radius):
         logger.info("Coordinate record exists. Skipping");
         return
-    
+
+    if(radius<50):
+        return
+
     response = search(latitude = mid_lat, longitude = mid_lng, radius = int(math.ceil(radius*1000)))
     # logging.info(response)
     businesses = response.get('businesses')
@@ -62,7 +65,7 @@ def recursive_search(coordinates, level):
         logger.info("Businesses count: " +  str(len(businesses)))
         for business in businesses:
             if business_in_US(business):
-                connector.enter_business_record(santize_business_object(business))
+                connector.enter_business_record(sanitize_business_object(business))
         
         recur_crdnts = []
         if len(businesses) >= 50:
@@ -75,6 +78,7 @@ def recursive_search(coordinates, level):
                  recursive_search(crdnt, level + 1)
     else:
         logger.info(u'No businesses found for lat, lng: {0}, {1}'.format(mid_lat, mid_lng))
+        logger.info('Error: ' + response)
         businesses = []
     
     connector.enter_coordinate_record(mid_lat, mid_lng, radius, n_l, s_l, e_l, w_l, len(businesses), level)
@@ -92,7 +96,6 @@ def get_business( business_id):
 
 
 def query_api(term=None, location=None, coordinates=None):
-    connector.clean_db()
     """Queries the API by the input values from the user.
     Args:
         term (str): The search term to query.
@@ -113,8 +116,8 @@ def query_api(term=None, location=None, coordinates=None):
                 s_l = crdnt['south_lat']
                 e_l = crdnt['east_lng']
                 w_l = crdnt['west_lng']
-                mid_lat = (n_l + s_l)/2
-                mid_lng = (e_l + w_l)/2
+                mid_lat = (n_l + s_l)/2.0
+                mid_lng = (e_l + w_l)/2.0
                 temp_crdnt.append({'north_lat': n_l, 'east_lng': e_l, 'south_lat': mid_lat,'west_lng': mid_lng})
                 temp_crdnt.append({'north_lat': mid_lat, 'east_lng': mid_lng, 'south_lat': s_l,'west_lng': w_l})
                 temp_crdnt.append({'north_lat': n_l, 'east_lng': mid_lng, 'south_lat': mid_lat,'west_lng': w_l})

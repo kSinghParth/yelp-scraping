@@ -26,7 +26,7 @@ def sanitize_address_str(business):
 
 	return res
 
-def santize_business_object(business):
+def sanitize_business_object(business):
 	try:
 		business_id = business['id']
 	except:
