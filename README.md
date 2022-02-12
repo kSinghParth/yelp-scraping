@@ -18,3 +18,11 @@ Yelp-Scraping-USC-2022
 ### Coverage of the current boundary for LA
 
 ![Api Usage](/images/coverage.png)
+
+### Instalation
+
+#### Step 1
+ `pip install -r requirements.txt`
+
+ #### Step 2
+ `python main.py --businesses --reviews`

@@ -3,8 +3,8 @@ from mysql.connector import Error
 import yaml
 import argparse
 
-from util import *
 from logger import logger
+
 
 class Connector():
 
@@ -15,7 +15,6 @@ class Connector():
 
     connection = None
 
-
     def __init__(self):
         with open("conf.yaml", 'r') as stream:
             yaml_loader = yaml.safe_load(stream)
@@ -25,24 +24,22 @@ class Connector():
             DB_NAME = yaml_loader.get('db_name')
         self.connection = self.create_connection(DB_SERVER, USER_NAME, USER_PASSWORD, DB_NAME)
 
-
     def create_connection(self, host_name, user_name, user_password, db_name):
         try:
             connection = mysql.connector.connect(
-            host=host_name,
-            user=user_name,
-            passwd=user_password,
-            database=db_name
+                host=host_name,
+                user=user_name,
+                passwd=user_password,
+                database=db_name
             )
             logger.info("Connection to MySQL DB successful")
         except Error as e:
             logger.info(f"The error '{e}' occurred")
         return connection
 
-
     def close(self):
         self.connection.close()
-    
+
     def clean_db(self):
         logger.info('Cleaning')
 
@@ -52,21 +49,22 @@ class Connector():
         self.connection.commit()
 
     def enter_business_record(self, business):
-        sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating,'\
-            ' zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
+        sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating, '\
+            'zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
             'open, phone, categories, cover_img_url, transactions ) '\
-            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
             'WHERE NOT EXISTS (SELECT 1 FROM yelp_business WHERE business_id = %s) LIMIT 1;'
-        
-        val = [business['id'], business['name'], business['review_count'], 
-            business['rating'], business['zip_code'], business['city'], 
+
+        val = [
+            business['id'], business['name'], business['review_count'],
+            business['rating'], business['zip_code'], business['city'],
             business['state'], business['country'], business['url'],
             business['latitude'], business['longitude'],
-            business['address'], business['price'], business['open'], 
+            business['address'], business['price'], business['open'],
             business['phone'], business['categories_str'],
             business['image_url'], business['transactions_str'],
             business['id']
-            ]
+        ]
 
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
@@ -86,10 +84,9 @@ class Connector():
         cursor = self.connection.cursor()
         cursor.execute(sql, val)
         res = cursor.fetchone()
-        if res!=None:
-            return res[0]==1
+        if res:
+            return res[0] == 1
         return False
-
 
     def execute_read_query(self):
         cursor = self.connection.cursor()
@@ -102,14 +99,16 @@ class Connector():
             logger.info(f"The error '{e}' occurred")
 
 
+connector = Connector()
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--delete', dest='delete', default=False,
-                        type=bool, help='Delete the db entries')
+    parser.add_argument('--clean-db', dest='delete',
+                        default=False, action="store_true",
+                        help='Delete the db entrie')
     input_values = parser.parse_args()
 
-    connector = Connector()
-
     if input_values.delete:
-        connector.clean_db()
+        print("Be extremely careful with the below query.")
+        # connector.clean_db()

@@ -2,29 +2,33 @@ from datetime import datetime
 from geopy import distance
 from logger import logger
 
+
 def sanitize_str(unsanitized_str):
 	return str(unsanitized_str or '')
+
 
 def sanitize_address_str(business):
 	res = ''
 
 	try:
-		res = res + sanitize_str(business['location']['address1']) 
+		res = res + sanitize_str(business['location']['address1'])
 	except:
-		pass
-	try:
-		if business['location']['address2'] and len(business['location']['address2'])>0:
-			res = res + ' | ' + business['location']['address2']
-	except:
-		pass
+		logger.debug("Address1 not found")
 
 	try:
-		if business['location']['address3'] and len(business['location']['address3'])>0:
+		if business['location']['address2'] and len(business['location']['address2']) > 0:
+			res = res + ' | ' + business['location']['address2']
+	except:
+		logger.debug("Address1 not found")
+
+	try:
+		if business['location']['address3'] and len(business['location']['address3']) > 0:
 			res = res + ' | ' + business['location']['address3']
 	except:
 		pass
 
 	return res
+
 
 def sanitize_business_object(business):
 	try:
@@ -59,7 +63,7 @@ def sanitize_business_object(business):
 	try:
 		country = business['location']['country']
 	except:
-		country = None	
+		country = None
 	try:
 		url = business['url']
 	except:
@@ -106,31 +110,31 @@ def sanitize_business_object(business):
 		transactions_str = None
 
 	address = sanitize_address_str(business)
-	
-	return {'id': business_id, 
-		'name': name, 
-		'review_count': review_count, 
-        'rating': rating, 
-        'zip_code': zip_code, 
-        'city': city, 
-        'state': state,
-        'country': country, 
-        'url': url,
-        'latitude': latitude, 
-        'longitude': longitude,
-        'address': address, 
-        'price': price, 
-        'open': is_open,
-        'phone': phone, 
-        'categories_str': categories_str, 
-        'alias': alias,
-        'image_url': image_url,
-        'transactions_str': transactions_str
-        }
+
+	return {
+		'id': business_id,
+		'name': name,
+		'review_count': review_count,
+		'rating': rating,
+		'zip_code': zip_code,
+		'city': city,
+		'state': state,
+		'country': country,
+		'url': url,
+		'latitude': latitude,
+		'longitude': longitude,
+		'address': address,
+		'price': price,
+		'open': is_open,
+		'phone': phone,
+		'categories_str': categories_str,
+		'alias': alias,
+		'image_url': image_url,
+		'transactions_str': transactions_str
+	}
 
 
 def distance_calc(coordinates):
-
 	n_l = coordinates['north_lat']
 	s_l = coordinates['south_lat']
 	e_l = coordinates['east_lng']
@@ -142,16 +146,22 @@ def distance_calc(coordinates):
 	logger.info("Radius is {} for coordinates: {}".format(dist, coordinate_string(coordinates)))
 	return dist
 
+
 def is_valid_distance(coordinates, valid_radius_limit):
-	if distance_calc(coordinates)/2.0 > valid_radius_limit:
+	if distance_calc(coordinates) / 2.0 > valid_radius_limit:
 		return False
 	else:
 		return True
 
+
 def coordinate_string(coordinate):
-    return "North Latitude: "+str(coordinate['north_lat'])+'  , South Latitude: '+str(coordinate['south_lat'])+'  , East Longitude: '+str(coordinate['east_lng'])+'  , West Longitude: '+str(coordinate['west_lng'])
+	return 'North Latitude: ' + str(coordinate['north_lat']) + \
+		'  , South Latitude: ' + str(coordinate['south_lat']) + \
+		'  , East Longitude: ' + str(coordinate['east_lng']) + \
+		'  , West Longitude: ' + str(coordinate['west_lng'])
+
 
 def business_in_US(business):
-	if business['location']['country']=='US':
+	if business['location']['country'] == 'US':
 		return True
-	return False;
+	return False
