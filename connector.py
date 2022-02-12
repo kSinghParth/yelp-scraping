@@ -119,7 +119,7 @@ class Connector():
         self.connection.commit()
 
     def get_business_records(self):
-        sql = "SELECT business_id, review_count FROM yelp_business"
+        sql = "SELECT business_url, review_count FROM yelp_business"
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
