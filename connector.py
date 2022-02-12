@@ -48,6 +48,20 @@ class Connector():
         cursor.execute('DELETE FROM coordinates')
         self.connection.commit()
 
+    def clean_review_table(self):
+        logger.info('Cleaning')
+
+        cursor = self.connection.cursor()
+        cursor.execute('DELETE FROM yelp_reviews')
+        self.connection.commit()
+
+    def clean_user_table(self):
+        logger.info('Cleaning')
+
+        cursor = self.connection.cursor()
+        cursor.execute('DELETE FROM yelp_users')
+        self.connection.commit()
+
     def enter_business_record(self, business):
         sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating, '\
             'zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
@@ -68,6 +82,51 @@ class Connector():
 
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
+
+    def enter_review_record(self, review):
+        sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
+            'language, review_date, useful_votes, cool_votes, funny_votes ) '\
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1;'
+
+        val = [
+            review['id'], review['business_id'], review['user_id'],
+            review['review_text'], review['rating'],
+            review['language'], review['local_date'],
+            review['useful'], review['cool'],
+            review['funny'], review['id']
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def enter_user_record(self, user):
+        sql = 'INSERT INTO yelp_users ( user_id, user_reviewCount, user_friendCount, user_photoCount, user_name, '\
+            'feedback_counts_useful, feedback_counts_cool, feedback_counts_funny, user_link, user_userUrl,  '\
+            'user_eliteYear, user_displayLocation, user_src, user_srcSet ) '\
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'WHERE NOT EXISTS (SELECT 1 FROM yelp_users WHERE user_id = %s) LIMIT 1;'
+
+        val = [
+            user['id'], user['review_count'], user['friend_count'],
+            user['photo_count'], user['user_name'], user['useful'],
+            user['cool'], user['funny'], user['link'],
+            user['user_url'], user['elite_year'], user['display_location'],
+            user['src'], user['src_set'], user['id']
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def get_business_records(self):
+        sql = "SELECT business_id, review_count FROM yelp_business"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        businesses = cursor.fetchall()
+
+        return businesses
 
     def enter_coordinate_record(self, latitude, longitude, radius, n_l, s_l, e_l, w_l, quantity, level):
         sql = 'INSERT INTO coordinates ( lat, lng, radius, north_lat, south_lat, east_lng, west_lng, quantity, level ) '\
@@ -102,7 +161,6 @@ class Connector():
 connector = Connector()
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('--clean-db', dest='delete',
                         default=False, action="store_true",
@@ -110,5 +168,7 @@ if __name__ == '__main__':
     input_values = parser.parse_args()
 
     if input_values.delete:
-        print("Be extremely careful with the below query.")
         # connector.clean_db()
+        connector.clean_user_table()
+        connector.clean_review_table()
+        print("Be extremely careful with the below query.")

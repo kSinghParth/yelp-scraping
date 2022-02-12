@@ -30,7 +30,7 @@ def search(term=None, location=None, latitude=None, longitude=None, radius=None)
     if location:
         url_params['location'] = location
 
-    return request(API_HOST, SEARCH_PATH, url_params=url_params)
+    return request(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True)
 
 
 def recursive_search(coordinates, level):

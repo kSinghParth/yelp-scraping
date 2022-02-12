@@ -2,7 +2,7 @@ import requests
 import yaml
 import random
 
-from logger import logger
+# from logger import logger
 
 # This client code can run on Python 2.x or 3.x.  Your imports can be
 # simpler if you only need one of those.
@@ -17,7 +17,7 @@ with open("conf.yaml", 'r') as stream:
     ACCESS_TOKEN = yaml.safe_load(stream).get('access_token')
 
 
-def request(host, path, url_params=None):
+def request(host, path, url_params=None, with_token=False):
     """Given your API_KEY, send a GET request to the API.
     Args:
         host (str): The domain host of the API.
@@ -30,12 +30,12 @@ def request(host, path, url_params=None):
         HTTPError: An error occurs from the HTTP request.
     """
     url_params = url_params or {}
+    headers = {}
     url = '{0}{1}'.format(host, quote(path.encode('utf8')))
-    headers = {
-        'Authorization': 'Bearer %s' % get_random_api_key(),
-    }
+    if with_token:
+        headers['Authorization'] = 'Bearer %s' % get_random_api_key()
 
-    logger.info(u'Querying {0} ...'.format(url_params))
+    # logger.info(u'Querying {0} ...'.format(url_params))
 
     response = requests.request('GET', url, headers=headers, params=url_params)
 

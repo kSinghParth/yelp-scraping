@@ -2,6 +2,7 @@
 API_HOST = 'https://api.yelp.com'
 SEARCH_PATH = '/v3/businesses/search'
 BUSINESS_PATH = '/v3/businesses/'
+REVIEW_PATH = '/review_feed?rl=en&sort_by=relevance_desc&q=&start='
 
 
 # Defaults for our simple example.

@@ -2,6 +2,7 @@ import argparse
 
 from requester import *
 from constants import coordinates
+from logger import logger
 from get_business import query_business_api
 from get_reviews import query_review_api
 

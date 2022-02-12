@@ -134,6 +134,141 @@ def sanitize_business_object(business):
 	}
 
 
+def sanitize_review_object(review):
+	try:
+		review_id = review['id']
+	except:
+		# generate random id
+		review_id = 'xxxxx' + datetime.now().timestamp()
+	try:
+		business_id = review['business']['id']
+	except:
+		business_id = None
+	try:
+		user_id = review['userId']
+	except:
+		user_id = None
+	try:
+		review_text = review['comment']['text']
+	except:
+		review_text = None
+	try:
+		rating = review['rating']
+	except:
+		rating = None
+	try:
+		language = review['comment']['language']
+	except:
+		language = None
+	try:
+		local_date = datetime.strptime(review['localizedDate'], '%m/%d/%Y')
+	except:
+		local_date = None
+	try:
+		useful = review['feedback']['counts']['useful']
+	except:
+		useful = None
+	try:
+		cool = review['feedback']['counts']['cool']
+	except:
+		cool = None
+	try:
+		funny = review['feedback']['counts']['funny']
+	except:
+		funny = None
+
+	return {
+		'id': review_id,
+		'business_id': business_id,
+		'user_id': user_id,
+		'review_text': review_text,
+		'rating': rating,
+		'language': language,
+		'local_date': local_date,
+		'useful': useful,
+		'cool': cool,
+		'funny': funny
+	}
+
+
+def sanitize_user_object(user):
+	# print(user)
+	try:
+		user_id = user['id']
+	except:
+		# generate random id
+		user_id = 'xxxxx' + datetime.now().timestamp()
+	try:
+		review_count = user['reviewCount']
+	except:
+		review_count = None
+	try:
+		friend_count = user['friendCount']
+	except:
+		friend_count = None
+	try:
+		photo_count = user['photoCount']
+	except:
+		photo_count = None
+	try:
+		user_name = user['markupDisplayName']
+	except:
+		user_name = None
+	try:
+		useful = user['feedback']['counts']['useful']
+	except:
+		useful = None
+	try:
+		cool = user['feedback']['counts']['cool']
+	except:
+		cool = None
+	try:
+		funny = user['feedback']['counts']['funny']
+	except:
+		funny = None
+	try:
+		link = user['link']
+	except:
+		link = None
+	try:
+		user_url = user['userUrl']
+	except:
+		user_url = None
+	try:
+		elite_year = user['eliteYear']
+	except:
+		elite_year = None
+	try:
+		display_location = user['displayLocation']
+	except:
+		display_location = None
+	try:
+		src = user['src']
+	except:
+		src = None
+	try:
+		src_set = user['srcSet']
+	except:
+		src_set = None
+
+	return {
+		'id': user_id,
+		'review_count': review_count,
+		'friend_count': friend_count,
+		'photo_count': photo_count,
+		'user_name': user_name,
+		'useful': useful,
+		'cool': cool,
+		'funny': funny,
+		'link': link,
+		'user_url': user_url,
+		'elite_year': elite_year,
+		'display_location': display_location,
+		'src': src,
+		'src_set': src_set
+	}
+
+
 def distance_calc(coordinates):
 	n_l = coordinates['north_lat']
 	s_l = coordinates['south_lat']
@@ -165,3 +300,7 @@ def business_in_US(business):
 	if business['location']['country'] == 'US':
 		return True
 	return False
+
+
+def sanitize_business_url(url):
+	return url[0:url.index('?')]
