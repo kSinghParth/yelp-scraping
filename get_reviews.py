@@ -30,6 +30,7 @@ def recursive_fetch(url, review_count):
 		logger.error('Response: ' + str(response))
 		logger.error('Review: ' + str(review))
 		logger.error('User: ' + str(user))
+		print('Error: ' + str(e) + ' for review ' + str(review['id']))
 
 
 def query_review_api():
