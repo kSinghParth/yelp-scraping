@@ -118,6 +118,20 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
+    def get_business_records_for_reviews(self):
+        sql = 'select business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
+            ' inner join (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
+            ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
+            ' inner join yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
+            ' where tmp.r_counted is null or  tmp.r_counted != tmp.r_total'
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        businesses = cursor.fetchall()
+
+        return businesses
+
     def get_business_records(self):
         sql = "SELECT business_url, review_count FROM yelp_business"
 
