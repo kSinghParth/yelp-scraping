@@ -25,7 +25,7 @@ def recursive_fetch(url, review_count):
 				logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
-			time.sleep(1)
+			time.sleep(0.5)
 	except Exception as e:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.error('Error: ' + str(e))
@@ -42,5 +42,6 @@ def query_review_api():
 			logger.error('Unable to fetch all businesses either. Cancelling operation.')
 			return
 
+	logger.info("Length: " + str(len(businesses)))
 	for business in businesses:
 		recursive_fetch(business[0], business[1])

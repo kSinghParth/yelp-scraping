@@ -187,7 +187,8 @@ def sanitize_review_object(review):
 		'local_date': local_date,
 		'useful': useful,
 		'cool': cool,
-		'funny': funny
+		'funny': funny,
+		'response_body': str(review)
 	}
 
 

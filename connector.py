@@ -85,8 +85,8 @@ class Connector():
 
     def enter_review_record(self, review):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
-            'language, review_date, useful_votes, cool_votes, funny_votes ) '\
-            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'language, review_date, useful_votes, cool_votes, funny_votes, response_body ) '\
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
             'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1;'
 
         val = [
@@ -94,7 +94,7 @@ class Connector():
             review['review_text'], review['rating'],
             review['language'], review['local_date'],
             review['useful'], review['cool'],
-            review['funny'], review['id']
+            review['funny'], review['response_body'], review['id']
         ]
 
         self.connection.cursor().execute(sql, val)
@@ -120,15 +120,16 @@ class Connector():
 
     def get_business_records_for_reviews(self):
         sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
-            ' INNER JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
+            ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
             ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
             ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
-            ' WHERE tmp.r_counted is null or  tmp.r_counted != tmp.r_total'
+            ' WHERE tmp.r_counted is null'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
 
         businesses = cursor.fetchall()
+        print(len(businesses))
 
         return businesses
 
