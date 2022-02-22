@@ -34,7 +34,7 @@ class Connector():
             )
             logger.info("Connection to MySQL DB successful")
         except Error as e:
-            logger.info(f"The error '{e}' occurred")
+            logger.info("The error " + str(e) + " occurred")
         return connection
 
     def close(self):
