@@ -19,18 +19,16 @@ def recursive_fetch(url, review_count):
 				break
 			counted = counted + len(reviews)
 			for review in reviews:
+				logger.info('Review: ' + str(review))
 				connector.enter_review_record(sanitize_review_object(review))
 				user = review['user']
+				logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
 			time.sleep(1)
 	except Exception as e:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.error('Error: ' + str(e))
-		logger.error('Response: ' + str(response))
-		logger.error('Review: ' + str(review))
-		logger.error('User: ' + str(user))
-		print('Error: ' + str(e) + ' for review ' + str(review['id']))
 
 
 def query_review_api():
