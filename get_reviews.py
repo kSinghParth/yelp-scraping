@@ -45,11 +45,15 @@ def query_review_api():
 			print("Error")
 			return
 
+	i = 0
 	logger.info("Length: " + str(len(businesses)))
 	for business in businesses:
 		recursive_fetch(business[0], business[1])
 		logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
 		print('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
+		i = i + 1
+		if i == 10:
+			break
 
 
 def add_total_photos_for_reviews_backlog():

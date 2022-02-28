@@ -38,7 +38,7 @@ def generic_request(host, path, url_params=None, with_token=False):
     if with_token:
         headers['Authorization'] = 'Bearer %s' % get_random_api_key()
 
-    # logger.info(u'Querying {0} ...'.format(url_params))
+    logger.info(u'Querying {0} ...'.format(url))
 
     response = requests.request('GET', url, headers=headers, params=url_params,
                                 proxies={

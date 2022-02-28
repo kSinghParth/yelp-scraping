@@ -22,29 +22,42 @@ def populate_review_images_backlog():
 			total_photos = review[1]
 			photos = ast.literal_eval(review[2])['photos']
 			logger.info('Checking for review id: ' + review_id + ', total photos: ' + str(total_photos))
+
 			if total_photos != len(photos):
 				logger.info('Fetching from web')
-				url = photos[0]['link'][0:photos[0]['link'].index('select=')]
-				response = generic_request(WEB_HOST + url, '', url_params=None, with_token=False)
-				page = response.content
-				if response.status_code == 200:
-					with open('a.html', 'wb') as f:
-						f.write(page)
-				soup = BeautifulSoup(page, 'html.parser')
-				web_photos = soup.select('#super-container > div.container > div > div.media-landing.js-media-landing > div.media-landing_gallery.photos > ul > li > div')
-				for web_photo in web_photos:
-					photo = {}
-					photo['id'] = web_photo['data-photo-id']
-					photo['review_id'] = review_id
-					photo['image_url'] = web_photo.img['src']
-					photo['src_set'] = web_photo.img['srcset']
-					photo['height'] = web_photo.img['height']
-					photo['width'] = web_photo.img['width']
-					photo['alt_text'] = web_photo.img['alt']
-					photo['web_url'] = WEB_HOST + web_photo.a['href']
-					photo['image_date'] = image_date
-					photo['caption'] = None
-					connector.enter_photo_record(photo)
+				ct = 0
+				while ct < total_photos:
+					url = photos[0]['link'][0:photos[0]['link'].index('select=')] + 'start=' + str(ct)
+					response = generic_request(WEB_HOST + url, '', url_params=None, with_token=False)
+					page = response.content
+					if response.status_code == 200:
+						with open('a.html', 'wb') as f:
+							f.write(page)
+					else:
+						break
+					soup = BeautifulSoup(page, 'html.parser')
+					web_photos = soup.select('#super-container > div.container > div > div.media-landing.js-media-landing > div.media-landing_gallery.photos > ul > li > div')
+					logger.info("no of images: " + str(len(web_photos)))
+					tmp_ct = 0
+					for web_photo in web_photos:
+						photo = {}
+						photo['id'] = web_photo['data-photo-id']
+						photo['review_id'] = review_id
+						photo['image_url'] = web_photo.img['src']
+						photo['src_set'] = web_photo.img['srcset']
+						photo['height'] = web_photo.img['height']
+						photo['width'] = web_photo.img['width']
+						photo['alt_text'] = web_photo.img['alt']
+						photo['web_url'] = WEB_HOST + web_photo.a['href']
+						photo['image_date'] = image_date
+						photo['caption'] = None
+						connector.enter_photo_record(photo)
+						tmp_ct = tmp_ct + 1
+					logger.info("Added: " + str(tmp_ct))
+					print("Added: " + str(tmp_ct))
+					if tmp_ct <= 30:
+						break
+					ct = ct + tmp_ct
 			else:
 				logger.info('Not fetching from web')
 				for photo in photos:
@@ -53,7 +66,8 @@ def populate_review_images_backlog():
 					connector.enter_photo_record(sanitize_image_object(photo))
 			print("Successful image population for review: " + review_id)
 			logger.info("Successful image population for review: " + review_id)
-		except Exception as e:
+		except Exception:
 			logger.error("Error while saving image for review id: " + review_id)
-			logger.error("Error: " + str(e))
+			logger.error(web_photo)
+			logger.exception("Error: ")
 			print("Error while saving image for review id: " + review_id)
