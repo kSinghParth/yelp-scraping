@@ -4,7 +4,7 @@ from connector import connector
 from constants import *
 from util import *
 from logger import logger
-from requester import request
+from requester import request_json
 
 
 def search(term=None, location=None, latitude=None, longitude=None, radius=None):
@@ -30,7 +30,7 @@ def search(term=None, location=None, latitude=None, longitude=None, radius=None)
     if location:
         url_params['location'] = location
 
-    return request(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True)
+    return request_json(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True)
 
 
 def recursive_search(coordinates, level):

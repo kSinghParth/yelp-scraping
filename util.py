@@ -1,6 +1,7 @@
 from datetime import datetime
 from geopy import distance
 from logger import logger
+from constants import WEB_HOST
 
 
 def sanitize_str(unsanitized_str):
@@ -176,6 +177,14 @@ def sanitize_review_object(review):
 		funny = review['feedback']['counts']['funny']
 	except:
 		funny = None
+	try:
+		total_photos = review['totalPhotos']
+	except:
+		total_photos = None
+	try:
+		photos_url = WEB_HOST + review['photosUrl']
+	except:
+		photos_url = None
 
 	return {
 		'id': review_id,
@@ -188,7 +197,10 @@ def sanitize_review_object(review):
 		'useful': useful,
 		'cool': cool,
 		'funny': funny,
-		'response_body': str(review)
+		'response_body': str(review),
+		'total_photos': total_photos,
+		'photos_url': photos_url
+
 	}
 
 
@@ -266,6 +278,65 @@ def sanitize_user_object(user):
 		'elite_year': elite_year,
 		'display_location': display_location,
 		'src': src,
+		'src_set': src_set
+	}
+
+
+def sanitize_image_object(photo):
+	# print(user)
+	try:
+		image_id = photo['link'][photo['link'].index('select=') + 7:]
+	except:
+		# generate random id
+		image_id = 'xxxxx' + datetime.now().timestamp()
+	try:
+		caption = photo['caption']
+	except:
+		caption = None
+	try:
+		review_id = photo['reviewId']
+	except:
+		review_id = None
+	try:
+		image_url = photo['src']
+	except:
+		image_url = None
+	try:
+		alt_text = photo['altText']
+	except:
+		alt_text = None
+	try:
+		web_url = WEB_HOST + photo['link']
+	except:
+		web_url = None
+	try:
+		width = photo['width']
+	except:
+		width = None
+	try:
+		height = photo['height']
+	except:
+		height = None
+	try:
+		# image_date = datetime.strptime(photo['imageDate'], '%m/%d/%Y')
+		image_date = photo['imageDate']
+	except:
+		image_date = None
+	try:
+		src_set = photo['srcset']
+	except:
+		src_set = None
+
+	return {
+		'id': image_id,
+		'review_id': review_id,
+		'caption': caption,
+		'image_url': image_url,
+		'web_url': web_url,
+		'alt_text': alt_text,
+		'width': width,
+		'height': height,
+		'image_date': image_date,
 		'src_set': src_set
 	}
 

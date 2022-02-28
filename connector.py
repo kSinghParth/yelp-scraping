@@ -85,8 +85,8 @@ class Connector():
 
     def enter_review_record(self, review):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
-            'language, review_date, useful_votes, cool_votes, funny_votes, response_body ) '\
-            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url ) '\
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
             'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1;'
 
         val = [
@@ -94,7 +94,8 @@ class Connector():
             review['review_text'], review['rating'],
             review['language'], review['local_date'],
             review['useful'], review['cool'],
-            review['funny'], review['response_body'], review['id']
+            review['funny'], review['response_body'],
+            review['total_photos'], review['photos_url'], review['id']
         ]
 
         self.connection.cursor().execute(sql, val)
@@ -114,6 +115,30 @@ class Connector():
             user['user_url'], user['elite_year'], user['display_location'],
             user['src'], user['src_set'], user['id']
         ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def enter_photo_record(self, photo):
+        sql = 'INSERT INTO yelp_photos ( image_id, review_id, caption, image_url, web_url, '\
+            'alt_text, width, height, image_date, src_set) '\
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'WHERE NOT EXISTS (SELECT 1 FROM yelp_photos WHERE image_id = %s) LIMIT 1;'
+
+        val = [
+            photo['id'], photo['review_id'], photo['caption'],
+            photo['image_url'], photo['web_url'], photo['alt_text'],
+            photo['width'], photo['height'], photo['image_date'],
+            photo['src_set'], photo['id']
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def add_total_photos(self, review_id, total_photos):
+        sql = 'UPDATE yelp_reviews set total_photos = %s where review_id = %s'
+
+        val = [total_photos, review_id]
 
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
@@ -142,6 +167,33 @@ class Connector():
         businesses = cursor.fetchall()
 
         return businesses
+
+    def get_review_photo_info(self):
+        sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\
+            ' LEFT JOIN (SELECT p.review_id r_id, count(p.image_id) p_counted, r.total_photos p_total '\
+            ' FROM yelp_photos p inner join `yelp_reviews` r on r.review_id = p.review_id '\
+            ' group by p.review_id) as tmp on tmp.r_id =  yr.review_id '\
+            ' WHERE (tmp.p_counted is null or tmp.p_counted < tmp.p_total) and  total_photos '\
+            '>0 and yr.response_body is not null'
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        reviews = cursor.fetchall()
+        print(len(reviews))
+
+        return reviews
+
+    def get_review_info_for_backlog(self):
+        sql = 'SELECT review_id, response_body from yelp_reviews where response_body is not null'
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        reviews = cursor.fetchall()
+        print(len(reviews))
+
+        return reviews
 
     def enter_coordinate_record(self, latitude, longitude, radius, n_l, s_l, e_l, w_l, quantity, level):
         sql = 'INSERT INTO coordinates ( lat, lng, radius, north_lat, south_lat, east_lng, west_lng, quantity, level ) '\

@@ -1,6 +1,7 @@
 import requests
 import yaml
 import random
+from logger import logger
 
 # from logger import logger
 
@@ -14,10 +15,12 @@ except ImportError:
 
 # https://www.yelp.com/developers/v3/manage_app
 with open("conf.yaml", 'r') as stream:
-    ACCESS_TOKEN = yaml.safe_load(stream).get('access_token')
+    content = yaml.safe_load(stream)
+    ACCESS_TOKEN = content.get('access_token')
+    ZYTE_API_KEY = content.get('zyte_api_key')
 
 
-def request(host, path, url_params=None, with_token=False):
+def generic_request(host, path, url_params=None, with_token=False):
     """Given your API_KEY, send a GET request to the API.
     Args:
         host (str): The domain host of the API.
@@ -37,9 +40,23 @@ def request(host, path, url_params=None, with_token=False):
 
     # logger.info(u'Querying {0} ...'.format(url_params))
 
-    response = requests.request('GET', url, headers=headers, params=url_params)
+    response = requests.request('GET', url, headers=headers, params=url_params,
+                                proxies={
+                                    "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+                                    "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+                                },
+                                verify='./zyte-proxy-ca.crt'
+                                )
 
-    return response.json()
+    if response.status_code != 200:
+        logger.error("request failed for url: " + url)
+        print("request failed for url: " + url)
+
+    return response
+
+
+def request_json(host, path, url_params=None, with_token=False):
+    return generic_request(host, path, url_params, with_token).json()
 
 
 def get_random_api_key():

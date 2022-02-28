@@ -5,6 +5,7 @@ from constants import coordinates
 from logger import logger
 from get_business import query_business_api
 from get_reviews import query_review_api
+from get_image_backlog import populate_review_images_backlog
 
 # This client code can run on Python 2.x or 3.x.  Your imports can be
 # simpler if you only need one of those.
@@ -28,6 +29,8 @@ def main():
                         action="store_true", help='Fetch businesses (Default:False)')
     parser.add_argument('-r', '--reviews', dest='reviews', default=False,
                         action="store_true", help='Fetch reviews (Default:False')
+    parser.add_argument('-ib', '--image-backlog', dest='imagebklg', default=False,
+                        action="store_true", help='Store image backlog (Default:False')
 
     input_values = parser.parse_args()
 
@@ -38,6 +41,9 @@ def main():
         if input_values.reviews:
             logger.info("Fetching reviews")
             query_review_api()
+        if input_values.imagebklg:
+            logger.info("Populating image backlog")
+            populate_review_images_backlog()
 
     except HTTPError as error:
         sys.exit(

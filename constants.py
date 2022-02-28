@@ -1,5 +1,6 @@
 # API constants, you shouldn't have to change these.
 API_HOST = 'https://api.yelp.com'
+WEB_HOST = 'https://www.yelp.com'
 SEARCH_PATH = '/v3/businesses/search'
 BUSINESS_PATH = '/v3/businesses/'
 REVIEW_PATH = '/review_feed?rl=en&sort_by=relevance_desc&q=&start='

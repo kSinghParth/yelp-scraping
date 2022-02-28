@@ -1,9 +1,10 @@
 import time
+import ast
 
 from connector import connector
 from util import sanitize_business_url, sanitize_review_object, sanitize_user_object
 from constants import REVIEW_PATH
-from requester import request
+from requester import request_json
 from logger import logger
 
 
@@ -13,7 +14,7 @@ def recursive_fetch(url, review_count):
 	try:
 		while counted < review_count:
 			new_url = s_url + str(counted)
-			response = request(new_url, '', with_token=False)
+			response = request_json(new_url, '', with_token=False)
 			reviews = response['reviews']
 			if len(reviews) == 0:
 				break
@@ -26,9 +27,10 @@ def recursive_fetch(url, review_count):
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
 			time.sleep(0.5)
-	except Exception as e:
+	except:
 		logger.error('Faced the following error for url ' + new_url)
-		logger.error('Error: ' + str(e))
+		logger.exception('Error: ')
+		print('Faced the following error for url ' + new_url)
 
 
 def query_review_api():
@@ -40,8 +42,36 @@ def query_review_api():
 			businesses = connector.get_business_records()
 		except:
 			logger.error('Unable to fetch all businesses either. Cancelling operation.')
+			print("Error")
 			return
 
 	logger.info("Length: " + str(len(businesses)))
 	for business in businesses:
 		recursive_fetch(business[0], business[1])
+		logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
+		print('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
+
+
+def add_total_photos_for_reviews_backlog():
+	try:
+		reviews = connector.get_review_info_for_backlog()
+	except Exception as e:
+		logger.error('Unable to fetch review records.')
+		logger.error("Error: " + str(e))
+		print("Error")
+		return
+
+	logger.info("No of records found: " + str(len(reviews)))
+	for review in reviews:
+		try:
+			total_photos = ast.literal_eval(review[1])['totalPhotos']
+			# print(str(review[0]) + " " + str(total_photos))
+			connector.add_total_photos(review[0], total_photos)
+		except:
+			logger.error("Faced an exception for review id: " + str(review[0]))
+			logger.exception("Error: ")
+			print("Error")
+
+
+if __name__ == '__main__':
+	add_total_photos_for_reviews_backlog()
