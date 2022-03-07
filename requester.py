@@ -18,6 +18,8 @@ with open("conf.yaml", 'r') as stream:
     content = yaml.safe_load(stream)
     ACCESS_TOKEN = content.get('access_token')
     ZYTE_API_KEY = content.get('zyte_api_key')
+    SP_USER = content.get('smart_proxy_user')
+    SP_PWD = content.get('smart_proxy_password')
 
 
 def generic_request(host, path, url_params=None, with_token=False):
@@ -40,12 +42,21 @@ def generic_request(host, path, url_params=None, with_token=False):
 
     logger.info(u'Querying {0} ...'.format(url))
 
+    # Zyte IP Proxy
+    # response = requests.request('GET', url, headers=headers, params=url_params,
+    #                             proxies={
+    #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+    #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+    #                             },
+    #                             verify='./zyte-proxy-ca.crt'
+    #                             )
+
+    # Smart Proxy
     response = requests.request('GET', url, headers=headers, params=url_params,
                                 proxies={
-                                    "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-                                    "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-                                },
-                                verify='./zyte-proxy-ca.crt'
+                                    "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                    "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                }
                                 )
 
     if response.status_code != 200:

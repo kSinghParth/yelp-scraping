@@ -52,7 +52,7 @@ def query_review_api():
 		logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
 		print('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
 		i = i + 1
-		if i == 10:
+		if i == 50:
 			break
 
 
