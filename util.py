@@ -136,6 +136,7 @@ def sanitize_business_object(business):
 
 
 def sanitize_review_object(review):
+	print("Herererer")
 	try:
 		review_id = review['id']
 	except:
@@ -185,7 +186,7 @@ def sanitize_review_object(review):
 		photos_url = WEB_HOST + review['photosUrl']
 	except:
 		photos_url = None
-
+	print("here as well")
 	return {
 		'id': review_id,
 		'business_id': business_id,
