@@ -71,8 +71,9 @@ def generic_request(host, path, url_params=None, with_token=False):
                     raise Exception("Unable to fetch data from url " + url)
             else:
                 return response
-        except:
+        except Exception as e:
             logger.exception("ERROR: ")
+            print("Error: " + str(e))
             raise
         i = i + 1
         logger.info("Retrying")

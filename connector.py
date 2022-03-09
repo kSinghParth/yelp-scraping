@@ -98,10 +98,8 @@ class Connector():
             review['total_photos'], review['photos_url'], review['id']
         ]
 
-        print("tttt" + sql)
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
-        print("Here")
 
     def enter_user_record(self, user):
         sql = 'INSERT INTO yelp_users ( user_id, user_reviewCount, user_friendCount, user_photoCount, user_name, '\
