@@ -44,25 +44,25 @@ def generic_request(host, path, url_params=None, with_token=False):
 
     i = 0
     while i < 6:
-        # Zyte IP Proxy
-        # response = requests.request('GET', url, headers=headers, params=url_params,
-        #                             proxies={
-        #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-        #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-        #                             },
-        #                             verify='./zyte-proxy-ca.crt'
-        #                             )
-
-        # Smart Proxy
-        # response = requests.request('GET', url, headers=headers, params=url_params,
-        #                             proxies={
-        #                                 "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-        #                                 "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-        #                             }
-        #                             )
-
         try:
-            response = requests.request('GET', url, headers=headers, params=url_params)
+            # # Zyte IP Proxy
+            # response = requests.request('GET', url, headers=headers, params=url_params,
+            #                             proxies={
+            #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+            #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+            #                             },
+            #                             verify='./zyte-proxy-ca.crt'
+            #                             )
+
+            # # Smart Proxy
+            response = requests.request('GET', url, headers=headers, params=url_params,
+                                        proxies={
+                                            "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                            "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                        }
+                                        )
+
+            # response = requests.request('GET', url, headers=headers, params=url_params)
 
             if response.status_code != 200:
                 logger.error("Request failed " + str(response.status_code))

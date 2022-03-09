@@ -31,6 +31,8 @@ def recursive_fetch(url, review_count):
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')
 		print('Faced the following error for url ' + new_url)
+		counted = counted * -1
+	return counted
 
 
 def query_review_api():
@@ -48,9 +50,10 @@ def query_review_api():
 	i = 0
 	logger.info("Length: " + str(len(businesses)))
 	for business in businesses:
-		recursive_fetch(business[0], business[1])
-		logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
-		print('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
+		added = recursive_fetch(business[0], business[1])
+		if added > 0:
+			logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+			print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
 		i = i + 1
 		if i == 5:
 			break
