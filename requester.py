@@ -42,28 +42,40 @@ def generic_request(host, path, url_params=None, with_token=False):
 
     logger.info(u'Querying {0} ...'.format(url))
 
-    # Zyte IP Proxy
-    # response = requests.request('GET', url, headers=headers, params=url_params,
-    #                             proxies={
-    #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-    #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-    #                             },
-    #                             verify='./zyte-proxy-ca.crt'
-    #                             )
+    i = 0
+    while i < 6:
+        # Zyte IP Proxy
+        # response = requests.request('GET', url, headers=headers, params=url_params,
+        #                             proxies={
+        #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+        #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+        #                             },
+        #                             verify='./zyte-proxy-ca.crt'
+        #                             )
 
-    # Smart Proxy
-    response = requests.request('GET', url, headers=headers, params=url_params,
-                                proxies={
-                                    "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-                                    "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-                                }
-                                )
+        # Smart Proxy
+        # response = requests.request('GET', url, headers=headers, params=url_params,
+        #                             proxies={
+        #                                 "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+        #                                 "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+        #                             }
+        #                             )
 
-    if response.status_code != 200:
-        logger.error("request failed for url: " + url)
-        print("request failed for url: " + url)
+        try:
+            response = requests.request('GET', url, headers=headers, params=url_params)
 
-    return response
+            if response.status_code != 200:
+                logger.error("Request failed " + str(response.status_code))
+                print("Request failed " + str(response.status_code))
+                if i == 5:
+                    raise Exception("Unable to fetch data from url " + url)
+            else:
+                return response
+        except:
+            logger.exception("ERROR: ")
+            raise
+        i = i + 1
+        logger.info("Retrying")
 
 
 def request_json(host, path, url_params=None, with_token=False):

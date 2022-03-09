@@ -26,7 +26,7 @@ def recursive_fetch(url, review_count):
 				logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
-			time.sleep(0.5)
+			# time.sleep(0.5)
 	except:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')
@@ -52,7 +52,7 @@ def query_review_api():
 		logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
 		print('Added business: ' + business[0] + ' reviews: ' + str(business[1]))
 		i = i + 1
-		if i == 50:
+		if i == 5:
 			break
 
 
