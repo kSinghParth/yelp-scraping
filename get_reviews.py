@@ -8,14 +8,20 @@ from requester import request_json
 from logger import logger
 
 
-def recursive_fetch(url, review_count):
-	counted = 0
+def recursive_fetch(url, review_count, business_id, counted):
+	if counted is None:
+		counted = 0
 	s_url = sanitize_business_url(url) + REVIEW_PATH
 	try:
 		while counted < review_count:
 			new_url = s_url + str(counted)
 			response = request_json(new_url, '', with_token=False)
+			# print(response)
 			reviews = response['reviews']
+			# print(str(review_count) + " " + str(response['pagination']['totalResults']))
+			if review_count != response['pagination']['totalResults']:
+				review_count = response['pagination']['totalResults']
+				connector.update_total_reviews(business_id, review_count)
 			if len(reviews) == 0:
 				break
 			counted = counted + len(reviews)
@@ -26,7 +32,7 @@ def recursive_fetch(url, review_count):
 				logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
-			# time.sleep(0.5)
+			time.sleep(0.5)
 	except:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')
@@ -36,27 +42,30 @@ def recursive_fetch(url, review_count):
 
 
 def query_review_api():
-	try:
-		businesses = connector.get_business_records_for_reviews()
-	except:
-		logger.error('Unable to fetch business records where reviews not logged. Trying to fetch all records.')
+	bus_len = 1
+	while bus_len > 0:
 		try:
-			businesses = connector.get_business_records()
+			businesses = connector.get_business_records_for_reviews()
 		except:
-			logger.error('Unable to fetch all businesses either. Cancelling operation.')
-			print("Error")
-			return
+			logger.error('Unable to fetch business records where reviews not logged. Trying to fetch all records.')
+			try:
+				businesses = connector.get_business_records()
+			except:
+				logger.error('Unable to fetch all businesses either. Cancelling operation.')
+				print("Error")
+				return
 
-	i = 0
-	logger.info("Length: " + str(len(businesses)))
-	for business in businesses:
-		added = recursive_fetch(business[0], business[1])
-		if added > 0:
-			logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
-			print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
-		i = i + 1
-		if i == 1:
-			break
+		i = 0
+		logger.info("Length: " + str(len(businesses)))
+		bus_len = len(businesses)
+		for business in businesses:
+			added = recursive_fetch(business[0], business[1], business[2], business[3])
+			if added > 0:
+				logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+				print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+			i = i + 1
+			# if i == 1:
+			# 	break
 
 
 def add_total_photos_for_reviews_backlog():

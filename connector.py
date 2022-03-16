@@ -143,12 +143,20 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
+    def update_total_reviews(self, business_id, total_reviews):
+        sql = 'UPDATE yelp_business set review_count = %s where business_id = %s'
+        print("Updating")
+        val = [total_reviews, business_id]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def get_business_records_for_reviews(self):
         sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
             ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
             ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
             ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
-            ' WHERE tmp.r_counted is null  order by business_id desc'
+            ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])

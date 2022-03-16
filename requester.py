@@ -1,5 +1,6 @@
 import requests
 import yaml
+import time
 import random
 from logger import logger
 
@@ -43,7 +44,7 @@ def generic_request(host, path, url_params=None, with_token=False):
     logger.info(u'Querying {0} ...'.format(url))
 
     i = 0
-    while i < 6:
+    while i < 10:
         try:
             # # Zyte IP Proxy
             # response = requests.request('GET', url, headers=headers, params=url_params,
@@ -66,10 +67,12 @@ def generic_request(host, path, url_params=None, with_token=False):
 
             if response.status_code != 200:
                 logger.error("Request failed " + str(response.status_code))
-                print("Request failed " + str(response.status_code))
-                if i == 5:
+                # print("Request failed " + str(response.status_code))
+                if i == 9:
                     raise Exception("Unable to fetch data from url " + url)
             else:
+                logger.info("Request successful")
+                print("Returning")
                 return response
         except Exception as e:
             logger.exception("ERROR: ")
@@ -77,6 +80,7 @@ def generic_request(host, path, url_params=None, with_token=False):
             raise
         i = i + 1
         logger.info("Retrying")
+        time.sleep(0.5)
 
 
 def request_json(host, path, url_params=None, with_token=False):
