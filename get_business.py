@@ -1,10 +1,24 @@
 import math
+# import json
+import csv
 
 from connector import connector
 from constants import *
 from util import *
 from logger import logger
 from requester import request_json
+
+
+def populate_zip(city, state):
+    logger.info("Populating Zip Codes")
+    with open("zip_code_database.csv", newline="") as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='|')
+        for row in reader:
+            if row[3] == city and row[4] == state:
+                connector.enter_zip_code(row[0], city, state)
+
+    logger.info("Populated Zip Codes")
+    print("Populated Zip Codes")
 
 
 def search(term=None, location=None, latitude=None, longitude=None, radius=None):
@@ -30,7 +44,7 @@ def search(term=None, location=None, latitude=None, longitude=None, radius=None)
     if location:
         url_params['location'] = location
 
-    return request_json(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True)
+    return request_json(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True, with_proxy=False)
 
 
 def recursive_search(coordinates, level):
@@ -101,7 +115,7 @@ def get_business(business_id):
     return request(API_HOST, business_path)
 
 
-def query_business_api(term=None, location=None, coordinates=None):
+def query_business_api_by_coordinate(term=None, location=None, coordinates=None):
     """Queries the API by the input values from the user.
     Args:
         term (str): The search term to query.
@@ -142,5 +156,52 @@ def query_business_api(term=None, location=None, coordinates=None):
         logger.info("Response: " + response)
 
     # business_id = 'RVbZaawgEGmto6TxOoVBdQ'
-    # response = get_business(API_KEY, business_id)
+    # response = get_business(business_id)
     # logging.info(response)
+
+
+def query_business_api_by_zip():
+    """Queries the API by the zip code stored in the db.
+    """
+    zip_codes = connector.get_zip_codes()
+
+    for zip in zip_codes:
+        logger.info("Searching zip " + str(zip[0]) + " total:" + str(zip[3]) + " checked: " + str(zip[4]))
+        print("Searching zip " + str(zip[0]) + " total:" + str(zip[3]) + " checked: " + str(zip[4]))
+        recursive_search_by_zip(zip[0], zip[3], zip[4])
+
+
+def recursive_search_by_zip(zip, total, checked):
+    if checked is None:
+        checked = 0
+    if total is None:
+        total = 1
+    try:
+        while total > checked:
+            url_params = {
+                'limit': SEARCH_LIMIT
+            }
+            url_params['offset'] = checked
+            url_params['location'] = zip
+            response = request_json(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True, with_proxy=False)
+            if total != response['total']:
+                total = response['total']
+            businesses = response['businesses']
+            for business in businesses:
+                if business_in_US(business):
+                    connector.enter_business_record(sanitize_business_object(business))
+                    checked = checked + 1
+
+            if len(response['businesses']) < 50:
+                break
+    except Exception:
+        logger.error("Error faced while fetching business of area.")
+        logger.exception("Exception: ")
+        print("Error while parsing zip code")
+    logger.info("Total :" + str(total) + " Counted: " + str(checked))
+    print("Total :" + str(total) + " Counted: " + str(checked))
+    connector.update_zip_code_counts(zip, total, checked)
+
+
+if __name__ == '__main__':
+    query_business_api_by_zip()

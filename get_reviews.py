@@ -15,7 +15,7 @@ def recursive_fetch(url, review_count, business_id, counted):
 	try:
 		while counted < review_count:
 			new_url = s_url + str(counted)
-			response = request_json(new_url, '', with_token=False)
+			response = request_json(new_url, '', with_token=False, with_proxy=True)
 			# print(response)
 			reviews = response['reviews']
 			# print(str(review_count) + " " + str(response['pagination']['totalResults']))
@@ -32,7 +32,7 @@ def recursive_fetch(url, review_count, business_id, counted):
 				logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
-			time.sleep(0.5)
+			time.sleep(0.2)
 	except:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')

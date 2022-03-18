@@ -62,6 +62,27 @@ class Connector():
         cursor.execute('DELETE FROM yelp_users')
         self.connection.commit()
 
+    def enter_zip_code(self, zip_code, city, state):
+        sql = 'INSERT INTO zip_code ( zipcode, city, state ) SELECT %s, %s, %s as tmp '\
+            'WHERE NOT EXISTS (SELECT 1 FROM zip_code WHERE zipcode = %s) LIMIT 1;'
+
+        val = [
+            zip_code, city, state, zip_code
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def update_zip_code_counts(self, zip_code, total, checked):
+        sql = 'update zip_code set total = %s, checked = %s where zipcode = %s'
+
+        val = [
+            total, checked, zip_code
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def enter_business_record(self, business):
         sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating, '\
             'zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
@@ -175,6 +196,17 @@ class Connector():
         businesses = cursor.fetchall()
 
         return businesses
+
+    def get_zip_codes(self):
+        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        zip_codes = cursor.fetchall()
+        print(len(zip_codes))
+
+        return zip_codes
 
     def get_review_photo_info(self):
         sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\

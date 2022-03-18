@@ -28,7 +28,7 @@ def populate_review_images_backlog():
 				ct = 0
 				while ct < total_photos:
 					url = photos[0]['link'][0:photos[0]['link'].index('select=')] + 'start=' + str(ct)
-					response = generic_request(WEB_HOST + url, '', url_params=None, with_token=False)
+					response = generic_request(WEB_HOST + url, '', url_params=None, with_token=False, with_proxy=True)
 					page = response.content
 					if response.status_code == 200:
 						with open('a.html', 'wb') as f:

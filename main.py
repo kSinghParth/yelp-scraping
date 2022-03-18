@@ -3,7 +3,7 @@ import argparse
 from requester import *
 from constants import coordinates
 from logger import logger
-from get_business import query_business_api
+from get_business import query_business_api_by_coordinate, populate_zip, query_business_api_by_zip
 from get_reviews import query_review_api
 from get_image_backlog import populate_review_images_backlog
 
@@ -31,13 +31,19 @@ def main():
                         action="store_true", help='Fetch reviews (Default:False')
     parser.add_argument('-ib', '--image-backlog', dest='imagebklg', default=False,
                         action="store_true", help='Store image backlog (Default:False')
+    parser.add_argument('-c', '--city', dest='city', help='City to pick zip code of')
+    parser.add_argument('-s', '--state', dest='state', help='City to pick zip code of')
 
     input_values = parser.parse_args()
+
+    if input_values.city is not None and input_values.state is not None:
+        populate_zip(input_values.city, input_values.state)
 
     try:
         if input_values.businesses:
             logger.info("Fetching businesses")
-            query_business_api(None, None, coordinates)
+            # query_business_api_by_coordinate(None, None, coordinates)
+            query_business_api_by_zip()
         if input_values.reviews:
             logger.info("Fetching reviews")
             query_review_api()

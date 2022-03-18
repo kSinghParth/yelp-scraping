@@ -23,7 +23,7 @@ with open("conf.yaml", 'r') as stream:
     SP_PWD = content.get('smart_proxy_password')
 
 
-def generic_request(host, path, url_params=None, with_token=False):
+def generic_request(host, path, url_params=None, with_token=False, with_proxy=True):
     """Given your API_KEY, send a GET request to the API.
     Args:
         host (str): The domain host of the API.
@@ -46,28 +46,30 @@ def generic_request(host, path, url_params=None, with_token=False):
     i = 0
     while i < 10:
         try:
-            # # Zyte IP Proxy
-            # response = requests.request('GET', url, headers=headers, params=url_params,
-            #                             proxies={
-            #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-            #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
-            #                             },
-            #                             verify='./zyte-proxy-ca.crt'
-            #                             )
 
-            # # Smart Proxy
-            response = requests.request('GET', url, headers=headers, params=url_params,
-                                        proxies={
-                                            "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-                                            "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-                                        }
-                                        )
+            if with_proxy:
+                # # Zyte IP Proxy
+                # response = requests.request('GET', url, headers=headers, params=url_params,
+                #                             proxies={
+                #                                 "http": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+                #                                 "https": "http://" + ZYTE_API_KEY + ":@proxy.crawlera.com:8011/",
+                #                             },
+                #                             verify='./zyte-proxy-ca.crt'
+                #                             )
 
-            # response = requests.request('GET', url, headers=headers, params=url_params)
+                # # Smart Proxy
+                response = requests.request('GET', url, headers=headers, params=url_params,
+                                            proxies={
+                                                "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                                "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                            }
+                                            )
+            else:
+                response = requests.request('GET', url, headers=headers, params=url_params)
 
             if response.status_code != 200:
                 logger.error("Request failed " + str(response.status_code))
-                # print("Request failed " + str(response.status_code))
+                print("Request failed " + str(response.status_code))
                 if i == 9:
                     raise Exception("Unable to fetch data from url " + url)
             else:
@@ -80,11 +82,11 @@ def generic_request(host, path, url_params=None, with_token=False):
             raise
         i = i + 1
         logger.info("Retrying")
-        time.sleep(0.5)
+        time.sleep(0.2)
 
 
-def request_json(host, path, url_params=None, with_token=False):
-    return generic_request(host, path, url_params, with_token).json()
+def request_json(host, path, url_params=None, with_token=False, with_proxy=False):
+    return generic_request(host, path, url_params, with_token, with_proxy).json()
 
 
 def get_random_api_key():
