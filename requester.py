@@ -82,7 +82,7 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
             raise
         i = i + 1
         logger.info("Retrying")
-        time.sleep(0.2)
+        time.sleep(0.1)
 
 
 def request_json(host, path, url_params=None, with_token=False, with_proxy=False):

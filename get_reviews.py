@@ -1,4 +1,4 @@
-import time
+# import time
 import ast
 
 from connector import connector
@@ -32,7 +32,7 @@ def recursive_fetch(url, review_count, business_id, counted):
 				logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
-			time.sleep(0.2)
+			# time.sleep(0.2)
 	except:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')
