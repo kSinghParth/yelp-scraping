@@ -60,8 +60,8 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
                 # # Smart Proxy
                 response = requests.request('GET', url, headers=headers, params=url_params,
                                             proxies={
-                                                "http": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-                                                "https": "http://user-" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                                "http": "http://" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                                "https": "http://" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
                                             }
                                             )
             else:
@@ -82,7 +82,7 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
             raise
         i = i + 1
         logger.info("Retrying")
-        time.sleep(0.2)
+        # time.sleep(0.2)
 
 
 def request_json(host, path, url_params=None, with_token=False, with_proxy=False):
