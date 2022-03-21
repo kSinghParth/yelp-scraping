@@ -70,18 +70,19 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
                 response = requests.request('GET', url, headers=headers, params=url_params)
 
             if response.status_code != 200:
-                logger.error("Request failed " + str(response.status_code))
-                print("Request failed " + str(response.status_code))
                 if i == 9:
+                    logger.error("Request failed " + str(response.status_code))
+                    print("Request failed " + str(response.status_code))
                     raise Exception("Unable to fetch data from url " + url)
             else:
                 logger.info("Request successful")
                 print("Returning")
                 return response
         except Exception as e:
-            logger.exception("ERROR: ")
-            print("Error: " + str(e))
-            raise
+            if i == 9:
+                logger.exception("ERROR: ")
+                print("Error: " + str(e))
+                raise
         i = i + 1
         logger.info("Retrying")
         # time.sleep(0.2)

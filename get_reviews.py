@@ -4,7 +4,7 @@ import multiprocessing as mp
 from queue import Queue
 from threading import Thread
 
-from connector import connector
+from connector import connector, get_connector
 from util import sanitize_business_url, sanitize_review_object, sanitize_user_object
 from constants import REVIEW_PATH
 from requester import request_json
@@ -20,14 +20,24 @@ class DownloadWorker(Thread):
     def run(self):
         while True:
             # Get the work from the queue and expand the tuple
-            business = self.queue.get()
             try:
-                recursive_fetch(business)
+                business = self.queue.get()
+                con1 = get_connector()
+                try:
+                    added = recursive_fetch(business, con1)
+                    if added > 0:
+                        logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+                        print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+                finally:
+                    self.queue.task_done()
+            except:
+                logger.exception("Error before processing")
+                print("Error before processing")
             finally:
-                self.queue.task_done()
+                con1.close()
 
 
-def recursive_fetch(business):
+def recursive_fetch(business, connector1):
 	url = business[0]
 	review_count = business[1]
 	business_id = business[2]
@@ -45,17 +55,17 @@ def recursive_fetch(business):
 			# print(str(review_count) + " " + str(response['pagination']['totalResults']))
 			if review_count != response['pagination']['totalResults']:
 				review_count = response['pagination']['totalResults']
-				connector.update_total_reviews(business_id, review_count)
+				connector1.update_total_reviews(business_id, review_count)
 			if len(reviews) == 0:
 				break
 			counted = counted + len(reviews)
 			for review in reviews:
 				# logger.info('Review: ' + str(review))
-				connector.enter_review_record(sanitize_review_object(review))
+				connector1.enter_review_record(sanitize_review_object(review))
 				user = review['user']
 				# logger.info('User: ' + str(user))
 				user['id'] = review['userId']
-				connector.enter_user_record(sanitize_user_object(user))
+				connector1.enter_user_record(sanitize_user_object(user))
 			# time.sleep(0.2)
 	except:
 		logger.error('Faced the following error for url ' + new_url)
@@ -65,19 +75,19 @@ def recursive_fetch(business):
 	return counted
 
 
-# MultiProcessing setup
-def looper(businesses):
-	i = 0
-	logger.info("Partial Length: " + str(len(businesses)))
-	print("Partial Length: " + str(len(businesses)))
-	for business in businesses:
-		added = recursive_fetch(business)
-		if added > 0:
-			logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
-			print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
-		i = i + 1
-		# if i == 1:
-		# 	break
+# # MultiProcessing setup
+# def looper(businesses):
+# 	i = 0
+# 	logger.info("Partial Length: " + str(len(businesses)))
+# 	print("Partial Length: " + str(len(businesses)))
+# 	for business in businesses:
+# 		added = recursive_fetch(business, connector)
+# 		if added > 0:
+# 			logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+# 			print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+# 		i = i + 1
+# 		# if i == 1:
+# 		# 	break
 
 
 def query_review_api():
@@ -99,16 +109,16 @@ def query_review_api():
 		logger.info("Full Length: " + str(bus_len))
 		print("Full Length: " + str(bus_len))
 
-		# Single threaded
-		i = 0
-		for business in businesses:
-			added = recursive_fetch(business)
-			if added > 0:
-				logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
-				print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
-			i = i + 1
-			# if i == 1:
-			# 	break
+		# # Single threaded
+		# i = 0
+		# for business in businesses:
+		# 	added = recursive_fetch(business, connector)
+		# 	if added > 0:
+		# 		logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+		# 		print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+		# 	i = i + 1
+		# 	# if i == 1:
+		# 	# 	break
 
 		# # Multiprocessing
 		# pool = mp.Pool(2)
@@ -118,21 +128,24 @@ def query_review_api():
 		# pool.map(looper, [itr_bus for itr_bus in loop_bus])
 		# pool.close()
 
-		# # Multithreaded process
-		# # Create a queue to communicate with the worker threads
-		# queue = Queue()
-		# # Create 4 worker threads
-		# for x in range(1):
-		# 	worker = DownloadWorker(queue)
-		# 	# Setting daemon to True will let the main thread exit even though the workers are blocking
-		# 	worker.daemon = False
-		# 	worker.start()
-
-		# for business in businesses:
-		# 	# logger.info('Queueing {}'.format(business))
-		# 	queue.put((business))
-		# # Causes the main thread to wait for the queue to finish processing all the tasks
-		# queue.join()
+		# Multithreaded process
+		# Create a queue to communicate with the worker threads
+		try:
+			queue = Queue()
+			# Create 4 worker threads
+			for x in range(10):
+				worker = DownloadWorker(queue)
+				# Setting daemon to True will let the main thread exit even though the workers are blocking
+				worker.daemon = True
+				worker.start()
+			for business in businesses:
+				# logger.info('Queueing {}'.format(business))
+				queue.put((business))
+			# Causes the main thread to wait for the queue to finish processing all the tasks
+			queue.join()
+		except:
+			logger.exception("Error while running parallel threads")
+			print("Error while running parallel threads")
 
 
 def add_total_photos_for_reviews_backlog():

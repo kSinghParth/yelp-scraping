@@ -266,6 +266,10 @@ class Connector():
             logger.info("The error " + str(e) + " occurred")
 
 
+def get_connector():
+    return Connector()
+
+
 connector = Connector()
 
 if __name__ == '__main__':
