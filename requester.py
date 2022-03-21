@@ -84,7 +84,7 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
                 print("Error: " + str(e))
                 raise
         i = i + 1
-        logger.info("Retrying")
+        # logger.info("Retrying")
         # time.sleep(0.2)
 
 

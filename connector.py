@@ -26,7 +26,7 @@ class Connector():
 
     def create_connection(self, host_name, user_name, user_password, db_name):
         try:
-            connection = mysql.connector.connect(
+            self.connection = mysql.connector.connect(
                 host=host_name,
                 user=user_name,
                 passwd=user_password,
@@ -35,7 +35,7 @@ class Connector():
             logger.info("Connection to MySQL DB successful")
         except Error as e:
             logger.info("The error " + str(e) + " occurred")
-        return connection
+        return self.connection
 
     def close(self):
         self.connection.close()
