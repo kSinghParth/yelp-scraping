@@ -21,6 +21,8 @@ with open("conf.yaml", 'r') as stream:
     ZYTE_API_KEY = content.get('zyte_api_key')
     SP_USER = content.get('smart_proxy_user')
     SP_PWD = content.get('smart_proxy_password')
+proxy_url = "http://" + SP_USER + ":" + SP_PWD + "@149.28.81.160:20000"
+# print(proxy_url)
 
 
 def generic_request(host, path, url_params=None, with_token=False, with_proxy=True):
@@ -60,8 +62,8 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
                 # # Smart Proxy
                 response = requests.request('GET', url, headers=headers, params=url_params,
                                             proxies={
-                                                "http": "http://" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
-                                                "https": "http://" + SP_USER + ":" + SP_PWD + "@gate.dc.smartproxy.com:20000",
+                                                "http": proxy_url,
+                                                "https": proxy_url,
                                             }
                                             )
             else:

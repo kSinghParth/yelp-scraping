@@ -1,5 +1,8 @@
 import time
 import ast
+import multiprocessing as mp
+from queue import Queue
+from threading import Thread
 
 from connector import connector
 from util import sanitize_business_url, sanitize_review_object, sanitize_user_object
@@ -8,7 +11,28 @@ from requester import request_json
 from logger import logger
 
 
-def recursive_fetch(url, review_count, business_id, counted):
+class DownloadWorker(Thread):
+
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # Get the work from the queue and expand the tuple
+            business = self.queue.get()
+            try:
+                recursive_fetch(business)
+            finally:
+                self.queue.task_done()
+
+
+def recursive_fetch(business):
+	url = business[0]
+	review_count = business[1]
+	business_id = business[2]
+	counted = business[3]
+
 	if counted is None:
 		counted = 0
 	s_url = sanitize_business_url(url) + REVIEW_PATH
@@ -26,10 +50,10 @@ def recursive_fetch(url, review_count, business_id, counted):
 				break
 			counted = counted + len(reviews)
 			for review in reviews:
-				logger.info('Review: ' + str(review))
+				# logger.info('Review: ' + str(review))
 				connector.enter_review_record(sanitize_review_object(review))
 				user = review['user']
-				logger.info('User: ' + str(user))
+				# logger.info('User: ' + str(user))
 				user['id'] = review['userId']
 				connector.enter_user_record(sanitize_user_object(user))
 			# time.sleep(0.2)
@@ -41,7 +65,23 @@ def recursive_fetch(url, review_count, business_id, counted):
 	return counted
 
 
+# MultiProcessing setup
+def looper(businesses):
+	i = 0
+	logger.info("Partial Length: " + str(len(businesses)))
+	print("Partial Length: " + str(len(businesses)))
+	for business in businesses:
+		added = recursive_fetch(business)
+		if added > 0:
+			logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+			print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
+		i = i + 1
+		# if i == 1:
+		# 	break
+
+
 def query_review_api():
+	print("Number of processors: ", mp.cpu_count())
 	bus_len = 1
 	while bus_len > 0:
 		try:
@@ -55,17 +95,44 @@ def query_review_api():
 				print("Error")
 				return
 
-		i = 0
-		logger.info("Length: " + str(len(businesses)))
 		bus_len = len(businesses)
+		logger.info("Full Length: " + str(bus_len))
+		print("Full Length: " + str(bus_len))
+
+		# Single threaded
+		i = 0
 		for business in businesses:
-			added = recursive_fetch(business[0], business[1], business[2], business[3])
+			added = recursive_fetch(business)
 			if added > 0:
 				logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
 				print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
 			i = i + 1
 			# if i == 1:
 			# 	break
+
+		# # Multiprocessing
+		# pool = mp.Pool(2)
+		# loop_bus = []
+		# loop_bus.append(businesses[0:math.floor(bus_len / 2)])
+		# loop_bus.append(businesses[math.floor(bus_len / 2):bus_len])
+		# pool.map(looper, [itr_bus for itr_bus in loop_bus])
+		# pool.close()
+
+		# # Multithreaded process
+		# # Create a queue to communicate with the worker threads
+		# queue = Queue()
+		# # Create 4 worker threads
+		# for x in range(1):
+		# 	worker = DownloadWorker(queue)
+		# 	# Setting daemon to True will let the main thread exit even though the workers are blocking
+		# 	worker.daemon = False
+		# 	worker.start()
+
+		# for business in businesses:
+		# 	# logger.info('Queueing {}'.format(business))
+		# 	queue.put((business))
+		# # Causes the main thread to wait for the queue to finish processing all the tasks
+		# queue.join()
 
 
 def add_total_photos_for_reviews_backlog():

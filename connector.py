@@ -177,14 +177,14 @@ class Connector():
             ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
             ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
             ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
-            ' WHERE review_count>0 and (tmp.r_counted is null ) order by review_count'
+            ' WHERE review_count>0 and (tmp.r_counted is null ) order by review_count desc'
 #           ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
 
         businesses = cursor.fetchall()
-        print(len(businesses))
+        # print(len(businesses))
 
         return businesses
 
