@@ -26,7 +26,7 @@ class Connector():
 
     def create_connection(self, host_name, user_name, user_password, db_name):
         try:
-            self.connection = mysql.connector.connect(
+            connection = mysql.connector.connect(
                 host=host_name,
                 user=user_name,
                 passwd=user_password,
@@ -35,7 +35,7 @@ class Connector():
             logger.info("Connection to MySQL DB successful")
         except Error as e:
             logger.info("The error " + str(e) + " occurred")
-        return self.connection
+        return connection
 
     def close(self):
         self.connection.close()
@@ -177,7 +177,7 @@ class Connector():
             ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
             ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
             ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
-            ' WHERE review_count>0 and (tmp.r_counted is null ) order by review_count desc'
+            ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count) order by review_count desc'
 #           ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
 
         cursor = self.connection.cursor()
@@ -199,7 +199,7 @@ class Connector():
         return businesses
 
     def get_zip_codes(self):
-        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null or (checked < total and checked < 900)"
+        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null or (checked < total and checked < 200) and zipcode!=10150"
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])

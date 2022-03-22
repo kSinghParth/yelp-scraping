@@ -176,6 +176,7 @@ def recursive_search_by_zip(zip, total, checked):
         checked = 0
     if total is None:
         total = 1
+    i = 0
     try:
         while total > checked:
             url_params = {
@@ -192,7 +193,8 @@ def recursive_search_by_zip(zip, total, checked):
                     connector.enter_business_record(sanitize_business_object(business))
                     checked = checked + 1
 
-            if len(response['businesses']) < 50:
+            i = i + 1
+            if len(response['businesses']) < 50 or i == 20:
                 break
     except Exception:
         logger.error("Error faced while fetching business of area.")

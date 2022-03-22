@@ -44,6 +44,7 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
         headers['Authorization'] = 'Bearer %s' % get_random_api_key()
 
     logger.info(u'Querying {0} ...'.format(url))
+    logger.info("Params: " + str(url_params))
 
     i = 0
     while i < 10:
