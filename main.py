@@ -42,8 +42,8 @@ def main():
     try:
         if input_values.businesses:
             logger.info("Fetching businesses")
-            # query_business_api_by_coordinate(None, None, coordinates)
-            query_business_api_by_zip()
+            query_business_api_by_coordinate(None, None, coordinates)
+            # query_business_api_by_zip()
         if input_values.reviews:
             logger.info("Fetching reviews")
             query_review_api()

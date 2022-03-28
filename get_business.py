@@ -74,7 +74,7 @@ def recursive_search(coordinates, level):
     if businesses:
         logger.info("Businesses count: " + str(len(businesses)))
         for business in businesses:
-            if business_in_US(business):
+            if business_in_select_city(business):
                 connector.enter_business_record(sanitize_business_object(business))
 
         recur_crdnts = []

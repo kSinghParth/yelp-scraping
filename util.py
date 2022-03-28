@@ -3,6 +3,14 @@ from geopy import distance
 from logger import logger
 from constants import WEB_HOST
 
+from connector import get_connector
+
+connector = get_connector()
+select_cities = connector.get_select_cities()
+connector.close()
+
+print(len(select_cities))
+
 
 def sanitize_str(unsanitized_str):
 	return str(unsanitized_str or '')
@@ -371,6 +379,14 @@ def coordinate_string(coordinate):
 
 def business_in_US(business):
 	if business['location']['country'] == 'US':
+		print("return true")
+		return True
+	print("Return false")
+	return False
+
+
+def business_in_select_city(business):
+	if business['location']['city'] in select_cities:
 		return True
 	return False
 

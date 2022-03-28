@@ -199,7 +199,7 @@ class Connector():
         return businesses
 
     def get_zip_codes(self):
-        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null or (checked < total and checked < 200) and zipcode!=10150"
+        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null or (checked < total and checked < 200) "
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
@@ -209,13 +209,24 @@ class Connector():
 
         return zip_codes
 
+    def get_select_cities(self):
+        sql = "select distinct(city) from zip_code"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        cities = cursor.fetchall()
+        print(len(cities))
+
+        return cities
+
     def get_review_photo_info(self):
         sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\
             ' LEFT JOIN (SELECT p.review_id r_id, count(p.image_id) p_counted, r.total_photos p_total '\
             ' FROM yelp_photos p inner join `yelp_reviews` r on r.review_id = p.review_id '\
             ' group by p.review_id) as tmp on tmp.r_id =  yr.review_id '\
-            ' WHERE (tmp.p_counted is null or tmp.p_counted < tmp.p_total) and  total_photos '\
-            '>0 and yr.response_body is not null'
+            ' WHERE (tmp.p_counted is null or tmp.p_counted < tmp.p_total) and  total_photos>0 '\
+            # ' and yr.response_body is not null'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
