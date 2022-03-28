@@ -1,15 +1,7 @@
 from datetime import datetime
 from geopy import distance
 from logger import logger
-from constants import WEB_HOST
-
-from connector import get_connector
-
-connector = get_connector()
-select_cities = connector.get_select_cities()
-connector.close()
-
-print(len(select_cities))
+from constants import WEB_HOST, cities
 
 
 def sanitize_str(unsanitized_str):
@@ -386,7 +378,7 @@ def business_in_US(business):
 
 
 def business_in_select_city(business):
-	if business['location']['city'] in select_cities:
+	if business['location']['city'] in cities:
 		return True
 	return False
 

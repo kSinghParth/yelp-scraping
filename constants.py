@@ -27,3 +27,6 @@ coordinates = [
 	{'north_lat': 40.893144, 'east_lng': -73.728518, 'south_lat': 40.563087, 'west_lng': -74.035190},
 
 ]
+
+
+cities = ['Boston', 'New York', 'Philadelphia', 'Washington', 'Baltimore', 'Virginia Beach', 'Raleigh', 'Charlotte', 'Atlanta', 'Jacksonville', 'Miami', 'Nashville', 'Memphis', 'Louisville', 'Columbus', 'Indianapolis', 'Detroit', 'Milwaukee', 'Minneapolis', 'Chicago', 'Kansas City', 'Wichita', 'Omaha', 'Oklahoma City', 'Austin', 'Tulsa', 'Dallas', 'Arlington', 'Fort Worth', 'Houston', 'San Antonio', 'El Paso', 'Denver', 'Colorado Springs', 'Phoenix', 'Mesa', 'Tucson', 'Albuquerque', 'Las Vegas', 'Los Angeles', 'Long Beach', 'San Diego', 'Bakersfield', 'Fresno', 'San Francisco', 'Sacramento', 'Oakland', 'San Jose', 'Portland', 'Seattle']
