@@ -119,8 +119,10 @@ class Connector():
             review['total_photos'], review['photos_url'], review['id']
         ]
 
+        print("beg")
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
+        print("end")
 
     def enter_user_record(self, user):
         sql = 'INSERT INTO yelp_users ( user_id, user_reviewCount, user_friendCount, user_photoCount, user_name, '\
@@ -173,15 +175,17 @@ class Connector():
         self.connection.commit()
 
     def get_business_records_for_reviews(self):
-        sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
-            ' where business_id not in (select distinct(business_id) from `yelp_reviews`)'
+        # sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
+        #     ' where business_id not in (select distinct(business_id) from `yelp_reviews`)'
 
-        # sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
-        #     ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
-        #     ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
-        #     ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
-        #     ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count) '
-#           ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
+        sql = 'SELECT b.business_url, b.review_count, b.business_id,  count(r.review_id) FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id group by b.`business_id`having count(r.review_id) < b.review_count limit 100'
+
+#         sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
+#             ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
+#             ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
+#             ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
+#             ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count) '
+# #           ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
@@ -224,12 +228,15 @@ class Connector():
         return cities
 
     def get_review_photo_info(self):
-        sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\
-            ' LEFT JOIN (SELECT p.review_id r_id, count(p.image_id) p_counted, r.total_photos p_total '\
-            ' FROM yelp_photos p inner join `yelp_reviews` r on r.review_id = p.review_id '\
-            ' group by p.review_id) as tmp on tmp.r_id =  yr.review_id '\
-            ' WHERE (tmp.p_counted is null or tmp.p_counted < tmp.p_total) and  total_photos>0 '\
-            # ' and yr.response_body is not null'
+        sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews`  '\
+            ' where review_id not in (select distinct(review_id) from `yelp_photos`)'
+
+        # sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\
+        #     ' LEFT JOIN (SELECT p.review_id r_id, count(p.image_id) p_counted, r.total_photos p_total '\
+        #     ' FROM yelp_photos p inner join `yelp_reviews` r on r.review_id = p.review_id '\
+        #     ' group by p.review_id) as tmp on tmp.r_id =  yr.review_id '\
+        #     ' WHERE (tmp.p_counted is null or tmp.p_counted < tmp.p_total) and  total_photos>0 '\
+        #     ' and yr.response_body is not null'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
