@@ -87,8 +87,7 @@ class Connector():
         sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating, '\
             'zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
             'open, phone, categories, cover_img_url, transactions ) '\
-            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
-            'WHERE NOT EXISTS (SELECT 1 FROM yelp_business WHERE business_id = %s) LIMIT 1;'
+            'values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )'
 
         val = [
             business['id'], business['name'], business['review_count'],
@@ -107,8 +106,7 @@ class Connector():
     def enter_review_record(self, review):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
             'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url ) '\
-            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
-            'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1;'
+            'values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s ) '
 
         val = [
             review['id'], review['business_id'], review['user_id'],
@@ -145,8 +143,7 @@ class Connector():
     def enter_photo_record(self, photo):
         sql = 'INSERT INTO yelp_photos ( image_id, review_id, caption, image_url, web_url, '\
             'alt_text, width, height, image_date, src_set) '\
-            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
-            'WHERE NOT EXISTS (SELECT 1 FROM yelp_photos WHERE image_id = %s) LIMIT 1;'
+            'values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )'
 
         val = [
             photo['id'], photo['review_id'], photo['caption'],

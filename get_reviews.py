@@ -133,7 +133,7 @@ def query_review_api():
 		try:
 			queue = Queue()
 			# Create 4 worker threads
-			for x in range(10):
+			for x in range(5):
 				worker = DownloadWorker(queue)
 				# Setting daemon to True will let the main thread exit even though the workers are blocking
 				worker.daemon = True

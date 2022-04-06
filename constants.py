@@ -22,10 +22,14 @@ coordinates = [
 	# {'north_lat': 34.152330, 'east_lng': -118.182790, 'south_lat': 34.011307, 'west_lng': -118.337423},
 	# {'north_lat': 34.322895, 'east_lng': -118.334684, 'south_lat': 34.067079, 'west_lng': -118.592686},
 
-	# NY coordinates
-	{'north_lat': 40.647256, 'east_lng': -74.060387, 'south_lat': 40.493197, 'west_lng': -74.263548},
-	{'north_lat': 40.893144, 'east_lng': -73.728518, 'south_lat': 40.563087, 'west_lng': -74.035190},
+	# # NY coordinates
+	# {'north_lat': 40.647256, 'east_lng': -74.060387, 'south_lat': 40.493197, 'west_lng': -74.263548},
+	# {'north_lat': 40.893144, 'east_lng': -73.728518, 'south_lat': 40.563087, 'west_lng': -74.035190},
 
+	# Chicago coordinates
+	{'north_lat': 42.039240, 'east_lng': -87.526003, 'south_lat': 41.658200, 'west_lng': -87.808192},
+	{'north_lat': 42.015493, 'east_lng': -87.842098, 'south_lat': 41.945851, 'west_lng': -87.936967},
+  
 ]
 
 
