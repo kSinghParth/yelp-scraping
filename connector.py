@@ -96,8 +96,7 @@ class Connector():
             business['latitude'], business['longitude'],
             business['address'], business['price'], business['open'],
             business['phone'], business['categories_str'],
-            business['image_url'], business['transactions_str'],
-            business['id']
+            business['image_url'], business['transactions_str']
         ]
 
         self.connection.cursor().execute(sql, val)
@@ -114,7 +113,7 @@ class Connector():
             review['language'], review['local_date'],
             review['useful'], review['cool'],
             review['funny'], review['response_body'],
-            review['total_photos'], review['photos_url'], review['id']
+            review['total_photos'], review['photos_url']
         ]
 
         print("beg")
@@ -149,7 +148,7 @@ class Connector():
             photo['id'], photo['review_id'], photo['caption'],
             photo['image_url'], photo['web_url'], photo['alt_text'],
             photo['width'], photo['height'], photo['image_date'],
-            photo['src_set'], photo['id']
+            photo['src_set']
         ]
 
         self.connection.cursor().execute(sql, val)
