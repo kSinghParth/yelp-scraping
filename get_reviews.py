@@ -47,7 +47,7 @@ def recursive_fetch(business, connector1):
 		counted = 0
 	s_url = sanitize_business_url(url) + REVIEW_PATH
 	try:
-		while counted < review_count:
+		while True:
 			new_url = s_url + str(counted)
 			response = request_json(new_url, '', with_token=False, with_proxy=True)
 			# print(response)
@@ -67,6 +67,8 @@ def recursive_fetch(business, connector1):
 				user['id'] = review['userId']
 				connector1.enter_user_record(sanitize_user_object(user))
 			# time.sleep(0.2)
+			if counted >= review_count:
+				break
 	except:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')

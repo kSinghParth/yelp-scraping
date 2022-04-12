@@ -87,8 +87,8 @@ class Connector():
         sql = 'INSERT INTO yelp_business ( business_id, business_name, review_count, star_rating, '\
             'zip, city, state, country, business_url, latitude, longitude, address, price_range, '\
             'open, phone, categories, cover_img_url, transactions ) '\
-            'values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s )'
-
+            'SELECT %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s AS tmp '\
+            'WHERE NOT EXISTS (SELECT 1 FROM yelp_business WHERE business_id = %s) LIMIT 1;'
         val = [
             business['id'], business['name'], business['review_count'],
             business['rating'], business['zip_code'], business['city'],
@@ -96,7 +96,8 @@ class Connector():
             business['latitude'], business['longitude'],
             business['address'], business['price'], business['open'],
             business['phone'], business['categories_str'],
-            business['image_url'], business['transactions_str']
+            business['image_url'], business['transactions_str'],
+            business['id']
         ]
 
         self.connection.cursor().execute(sql, val)
@@ -105,7 +106,8 @@ class Connector():
     def enter_review_record(self, review):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
             'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url ) '\
-            'values( %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s ) '
+            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s as tmp '
+            # 'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1'
 
         val = [
             review['id'], review['business_id'], review['user_id'],
@@ -113,7 +115,8 @@ class Connector():
             review['language'], review['local_date'],
             review['useful'], review['cool'],
             review['funny'], review['response_body'],
-            review['total_photos'], review['photos_url']
+            review['total_photos'], review['photos_url'],
+            # review['id']
         ]
 
         print("beg")
@@ -171,10 +174,10 @@ class Connector():
         self.connection.commit()
 
     def get_business_records_for_reviews(self):
-        # sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
-        #     ' where business_id not in (select distinct(business_id) from `yelp_reviews`)'
+        sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
+            ' where review_count!= 0 and business_id not in (select distinct(business_id) from `yelp_reviews`)'
 
-        sql = 'SELECT b.business_url, b.review_count, b.business_id,  count(r.review_id) FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id group by b.`business_id`having count(r.review_id) < b.review_count limit 100'
+        # sql = 'SELECT b.business_url, b.review_count, b.business_id,  count(r.review_id) FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id group by b.`business_id`having count(r.review_id) < b.review_count limit 1'
 
 #         sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
 #             ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
@@ -187,6 +190,7 @@ class Connector():
         cursor.execute(sql, [])
 
         businesses = cursor.fetchall()
+
         # print(len(businesses))
 
         return businesses

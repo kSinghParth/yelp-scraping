@@ -75,7 +75,12 @@ def recursive_search(coordinates, level):
         logger.info("Businesses count: " + str(len(businesses)))
         for business in businesses:
             if business_in_select_city(business):
-                connector.enter_business_record(sanitize_business_object(business))
+                try:
+                    connector.enter_business_record(sanitize_business_object(business))
+                except Exception as e:
+                    print(e)
+                    logger.exception("the error: ")
+                    raise e
 
         recur_crdnts = []
         if len(businesses) >= 50:
