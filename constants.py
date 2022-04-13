@@ -73,18 +73,101 @@ coordinates = [
 	# # Charlotte
 	# {'north_lat': 35.393052, 'east_lng': -80.683283, 'south_lat': 35.030080, 'west_lng': -80.990213},
 
-	# SF
-	{'north_lat': 37.832559, 'east_lng': -122.364598, 'south_lat': 37.707049, 'west_lng': -122.510809},
+	# # SF
+	# {'north_lat': 37.832559, 'east_lng': -122.364598, 'south_lat': 37.707049, 'west_lng': -122.510809},
 
-	# Seattle
-	{'north_lat': 47.740084, 'east_lng': -122.255555, 'south_lat': 47.494772, 'west_lng': -122.410737},
+	# # Seattle
+	# {'north_lat': 47.740084, 'east_lng': -122.255555, 'south_lat': 47.494772, 'west_lng': -122.410737},
 
-	# Denver
-	{'north_lat': 39.800137, 'east_lng': -104.863360, 'south_lat': 39.646981, 'west_lng': -105.055620},
+	# # Denver
+	# {'north_lat': 39.800137, 'east_lng': -104.863360, 'south_lat': 39.646981, 'west_lng': -105.055620},
 
-	# Washington DC
-	{'north_lat': 38.997575, 'east_lng':  -76.927957, 'south_lat': 38.854977, 'west_lng': -77.094229},
+	# # Washington DC
+	# {'north_lat': 38.997575, 'east_lng':  -76.927957, 'south_lat': 38.854977, 'west_lng': -77.094229},
+	
+	# # Nashville
+	# {'north_lat': 36.410440, 'east_lng':  -86.529849, 'south_lat': 35.939866, 'west_lng': -86.974795},
+	
+	# # Oklahoma
+	# {'north_lat': 35.716816, 'east_lng':  -97.151016, 'south_lat': 35.268452, 'west_lng': -97.812943},
+	
+	# # El paso
+	# {'north_lat': 32.001317, 'east_lng':  -106.232925, 'south_lat': 31.630577, 'west_lng': -106.621594},
 
+	# # Portland
+	# {'north_lat': 45.652169, 'east_lng':  -122.493047, 'south_lat': 45.420826, 'west_lng': -122.821264},
+
+	# # Las vegas
+	# {'north_lat': 36.335339, 'east_lng':  -115.069215, 'south_lat': 36.130465, 'west_lng': -115.351477},
+
+	# # Detroit
+	# {'north_lat': 42.452005, 'east_lng':  -82.908326, 'south_lat': 42.251564, 'west_lng': -83.273621},
+
+	# # Memphis
+	# {'north_lat': 38.362294, 'east_lng':  -85.435767, 'south_lat': 38.047391, 'west_lng': -85.922358},
+
+	# # Baltimore
+	# {'north_lat': 39.372070, 'east_lng':  -76.529757, 'south_lat': 39.211522, 'west_lng': -76.703526},
+
+	# # Milwaukee
+	# {'north_lat': 43.192116, 'east_lng':  -87.876114, 'south_lat': 42.923704, 'west_lng': -88.058075},
+
+	# # Albuquerque
+	# {'north_lat': 35.216159, 'east_lng':  -106.477372, 'south_lat': 34.947925, 'west_lng': -106.756139},
+
+	# # Tucson
+	# {'north_lat': 32.298724, 'east_lng':  -110.745798, 'south_lat': 32.081976, 'west_lng': -111.033503},
+
+	# Fresno
+	{'north_lat': 36.911006, 'east_lng':  -119.677154, 'south_lat': 36.685841, 'west_lng': -119.927033},
+
+	# Sacramento
+	{'north_lat': 38.676458, 'east_lng':  -121.367390, 'south_lat': 38.439668, 'west_lng': -121.552098},
+
+	# Kansas City
+	{'north_lat': 39.327809, 'east_lng':  -94.380746, 'south_lat': 38.839857, 'west_lng': -94.689634},
+
+	# Mesa
+	{'north_lat': 33.508283, 'east_lng':  -111.576406, 'south_lat': 33.270955, 'west_lng': -111.892708},
+
+	# Atlanta
+	{'north_lat': 33.893918, 'east_lng':  -84.291301, 'south_lat': 33.656826, 'west_lng': -84.542836},
+
+	# Omaha
+	{'north_lat': 41.364028, 'east_lng':  -95.910120, 'south_lat': 41.190059, 'west_lng': -96.292744},
+
+	# Colordado Springs
+	{'north_lat': 39.032054, 'east_lng':  -104.637518, 'south_lat': 38.727373, 'west_lng': -104.904623},
+
+	# Raleigh
+	{'north_lat': 35.972159, 'east_lng':  -78.510482, 'south_lat': 35.720024, 'west_lng': -78.779647},
+
+	# Long beach
+	{'north_lat': 33.888438, 'east_lng':  -118.080054, 'south_lat': 33.736258, 'west_lng': -118.229926},
+
+	# Virginia Beach
+	{'north_lat': 36.935572, 'east_lng':  -75.959141, 'south_lat': 36.689697, 'west_lng': -76.189818},
+
+	# # Miami
+	# {'north_lat': 25.859343, 'east_lng':  -80.149123, 'south_lat': 25.708644, 'west_lng': -80.262704},
+
+	# # Oakland
+	# {'north_lat': 37.856916, 'east_lng':  -122.153812, 'south_lat': 37.723340, 'west_lng': -122.317027},
+
+	# # Minneapolis
+	# {'north_lat': 45.051744, 'east_lng':  -93.206892, 'south_lat': 44.889979, 'west_lng': -93.322249},
+
+	# # Tulsa
+	# {'north_lat': 36.244982, 'east_lng':  -95.692295, 'south_lat': 36.000158, 'west_lng': -96.060667},
+
+	# # Bakersfield
+	# {'north_lat': 35.424503, 'east_lng':  -118.935124, 'south_lat': 35.263730, 'west_lng': -119.149158},
+
+	# # Wichita
+	# {'north_lat': 37.792150, 'east_lng': -97.154571, 'south_lat': 37.570977, 'west_lng': -97.524673},
+
+	# # Arlington
+	# {'north_lat': 32.814367, 'east_lng': -97.039292, 'south_lat': 32.598278, 'west_lng': -97.230179},
 ]
 
 
