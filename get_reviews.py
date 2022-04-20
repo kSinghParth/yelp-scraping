@@ -38,6 +38,30 @@ class DownloadWorker(Thread):
                 con1.close()
 
 
+class DownloadWorker2(Thread):
+
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # Get the work from the queue and expand the tuple
+            try:
+                review = self.queue.get()
+                con1 = get_connector()
+                try:
+                    html_decoded_string = html.unescape(review[1]).replace('<br>', '').replace('<br/>', '').replace('</br>', '')
+                    con1.update_reviews_for_html_decode(review[0], html_decoded_string)
+                finally:
+                    self.queue.task_done()
+            except:
+                logger.exception("Error before processing")
+                print("Error before processing")
+            finally:
+                con1.close()
+
+
 def recursive_fetch(business, connector1):
 	url = business[0]
 	review_count = business[1]
@@ -183,17 +207,22 @@ def decode_review_string():
 
 	# reviews = [(0, 'I&#39;m only giving two stars cause the place just opened but wow does this place deserve one star. Almost every single employee I&#39;ve interacted with has no clue what they&#39;re doing, they avoid customers because they don&#39;t know what to do with them. My wings never have nearly enough sauce, sometimes the foods even cold. Tonight I came for the boneless special, to find out they ran out of the boneless wings and I have to wait 40 min because they&#39;re out getting more boneless wings, then I find out they have to use chicken nuggets instead. Sigh. Wait is almost always more than half hour anytime after the evening. On nights with specials it&#39;s always over an hour. Hopefully it gets better.<br><br>Never mind, they just covered my whole meal plus dessert, and gave me 4 free wing coupons for my next visit. They felt really bad, maybe they just really messed up tonight. It is true they just opened.')]
 	logger.info("No of records found: " + str(len(reviews)))
-	for review in reviews:
-		try:
-			html_decoded_string = html.unescape(review[1]).replace('<br>', '').replace('<br/>', '').replace('</br>', '')
-			# print(review[0])
-			# print(review[1])
-			# print(html_decoded_string)
-			connector.update_reviews_for_html_decode(review[0], html_decoded_string)
-		except:
-			logger.error("Faced an exception for review id: " + str(review[0]))
-			logger.exception("Error: ")
-			print("Error")
+	try:
+		queue = Queue()
+		# Create 4 worker threads
+		for x in range(50):
+			worker = DownloadWorker2(queue)
+			# Setting daemon to True will let the main thread exit even though the workers are blocking
+			worker.daemon = True
+			worker.start()
+		for review in reviews:
+			# logger.info('Queueing {}'.format(business))
+			queue.put((review))
+		# Causes the main thread to wait for the queue to finish processing all the tasks
+		queue.join()
+	except:
+		logger.exception("Error while running parallel threads")
+		print("Error while running parallel threads")
 
 
 if __name__ == '__main__':
