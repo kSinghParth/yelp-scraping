@@ -3,6 +3,7 @@ import ast
 import multiprocessing as mp
 from queue import Queue
 from threading import Thread
+import html
 
 from connector import connector, get_connector
 from util import sanitize_business_url, sanitize_review_object, sanitize_user_object
@@ -171,5 +172,30 @@ def add_total_photos_for_reviews_backlog():
 			print("Error")
 
 
+def decode_review_string():
+	try:
+		reviews = connector.get_reviews_for_html_decode()
+	except Exception as e:
+		logger.error('Unable to fetch review records.')
+		logger.error("Error: " + str(e))
+		print("Error")
+		return
+
+	# reviews = [(0, 'I&#39;m only giving two stars cause the place just opened but wow does this place deserve one star. Almost every single employee I&#39;ve interacted with has no clue what they&#39;re doing, they avoid customers because they don&#39;t know what to do with them. My wings never have nearly enough sauce, sometimes the foods even cold. Tonight I came for the boneless special, to find out they ran out of the boneless wings and I have to wait 40 min because they&#39;re out getting more boneless wings, then I find out they have to use chicken nuggets instead. Sigh. Wait is almost always more than half hour anytime after the evening. On nights with specials it&#39;s always over an hour. Hopefully it gets better.<br><br>Never mind, they just covered my whole meal plus dessert, and gave me 4 free wing coupons for my next visit. They felt really bad, maybe they just really messed up tonight. It is true they just opened.')]
+	logger.info("No of records found: " + str(len(reviews)))
+	for review in reviews:
+		try:
+			html_decoded_string = html.unescape(review[1]).replace('<br>', '').replace('<br/>', '').replace('</br>', '')
+			# print(review[0])
+			# print(review[1])
+			# print(html_decoded_string)
+			connector.update_reviews_for_html_decode(review[0], html_decoded_string)
+		except:
+			logger.error("Faced an exception for review id: " + str(review[0]))
+			logger.exception("Error: ")
+			print("Error")
+
+
 if __name__ == '__main__':
-	add_total_photos_for_reviews_backlog()
+	# add_total_photos_for_reviews_backlog()
+	decode_review_string()

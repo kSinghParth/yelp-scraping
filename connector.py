@@ -173,6 +173,13 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
+    def update_reviews_for_html_decode(self, review_id, review_text):
+        sql = 'UPDATE yelp_reviews set review_text = %s, check_in = 1 where review_id = %s'
+        val = [review_text, review_id]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def get_business_records_for_reviews(self):
         sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
             ' where review_count!= 0 and business_id not in (select distinct(business_id) from `yelp_reviews`)'
@@ -237,6 +244,17 @@ class Connector():
         #     ' group by p.review_id) as tmp on tmp.r_id =  yr.review_id '\
         #     ' WHERE (tmp.p_counted is null or tmp.p_counted < tmp.p_total) and  total_photos>0 '\
         #     ' and yr.response_body is not null'
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        reviews = cursor.fetchall()
+        print(len(reviews))
+
+        return reviews
+
+    def get_reviews_for_html_decode(self):
+        sql = 'SELECT review_id, review_text from yelp_reviews where check_in is null limit 100'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
