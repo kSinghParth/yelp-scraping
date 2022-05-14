@@ -105,8 +105,8 @@ class Connector():
 
     def enter_review_record(self, review):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
-            'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url ) '\
-            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s as tmp '
+            'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url, check_in ) '\
+            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 2 as tmp '
             # 'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1'
 
         val = [
