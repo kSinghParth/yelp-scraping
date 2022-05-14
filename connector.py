@@ -213,7 +213,7 @@ class Connector():
         return businesses
 
     def get_zip_codes(self):
-        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null or (checked < total and checked < 200) "
+        sql = "SELECT zipcode, city, state, total, checked FROM zip_code WHERE total is Null OR checked = Null or (checked < total and checked < 900)"
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])

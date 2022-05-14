@@ -371,9 +371,7 @@ def coordinate_string(coordinate):
 
 def business_in_US(business):
 	if business['location']['country'] == 'US':
-		print("return true")
 		return True
-	print("Return false")
 	return False
 
 

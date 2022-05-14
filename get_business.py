@@ -188,7 +188,7 @@ def recursive_search_by_zip(zip, total, checked):
                 'limit': SEARCH_LIMIT
             }
             url_params['offset'] = checked
-            url_params['location'] = zip
+            url_params['location'] = ("0" + str(zip))[-5:]
             response = request_json(API_HOST, SEARCH_PATH, url_params=url_params, with_token=True, with_proxy=False)
             if total != response['total']:
                 total = response['total']
