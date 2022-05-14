@@ -151,7 +151,7 @@ def sanitize_review_object(review):
 	except:
 		user_id = None
 	try:
-		review_text = review['comment']['text']
+		review_text = html.unescape(review['comment']['text']).replace('<br>', '').replace('<br/>', '').replace('</br>', '')
 	except:
 		review_text = None
 	try:
