@@ -236,7 +236,7 @@ class Connector():
 
     def get_review_photo_info(self):
         sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews`  '\
-            ' where review_id not in (select distinct(review_id) from `yelp_photos`)'
+            ' where total_photos != 0 and review_id not in (select distinct(review_id) from `yelp_photos`)'
 
         # sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\
         #     ' LEFT JOIN (SELECT p.review_id r_id, count(p.image_id) p_counted, r.total_photos p_total '\
