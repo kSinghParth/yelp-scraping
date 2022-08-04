@@ -209,6 +209,18 @@ def recursive_search_by_zip(zip, total, checked):
     print("Total :" + str(total) + " Counted: " + str(checked))
     connector.update_zip_code_counts(zip, total, checked)
 
+def update_primary_city():
+    zip_tuple = connector.get_all_business_zip()
+    cities_tuple = connector.get_primary_city_for_zip()
+    zips = [z[0] for z in zip_tuple]
+    print(zips)
+    cities = [(format(z[0], '05d'), z[1]) for z in cities_tuple]
+    for c in cities:
+        if c[0] == '89917':
+            print("hi")
+    cities = list(filter(lambda x: x[0] in zips, cities))
+    print(len(cities))
+    connector.update_primary_city(cities)
 
 if __name__ == '__main__':
-    query_business_api_by_zip()
+    update_primary_city()

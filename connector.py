@@ -264,6 +264,17 @@ class Connector():
 
         return reviews
 
+    def get_reviews_for_owner_response(self):
+        sql = 'SELECT review_id, response_body from yelp_reviews limit 10'
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        reviews = cursor.fetchall()
+        print(len(reviews))
+
+        return reviews
+
     def get_review_info_for_backlog(self):
         sql = 'SELECT review_id, response_body from yelp_reviews where response_body is not null'
 
@@ -293,6 +304,35 @@ class Connector():
         if res:
             return res[0] == 1
         return False
+
+    def get_all_business_zip(self):
+        sql = "SELECT distinct zip FROM yelp_business where zip is not null and zip != '' and primary_city is NULL"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        zip = cursor.fetchall()
+        return zip
+
+    def get_primary_city_for_zip(self):
+        sql = "SELECT zipcode, primary_city FROM dp_city_zipcode"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        zip = cursor.fetchall()
+        return zip
+
+    def update_primary_city(self, cities):
+        for city in cities:
+            sql = 'update yelp_business set primary_city = %s where zip = %s'
+
+            val = [
+                city[1], city[0]
+            ]
+
+            self.connection.cursor().execute(sql, val)
+        self.connection.commit()
 
     def execute_read_query(self):
         cursor = self.connection.cursor()
