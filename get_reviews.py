@@ -1,9 +1,10 @@
-import time
+# import time
 import ast
 import multiprocessing as mp
 from queue import Queue
 from threading import Thread
 import html
+import argparse
 
 from connector import connector, get_connector
 from util import sanitize_business_url, sanitize_review_object, sanitize_user_object
@@ -255,7 +256,77 @@ def extract_owner_response():
 		print("Error while running parallel threads")
 
 
+# ----------- Fixing missed review ---------
+
+
+class DownloadWorker3(Thread):
+
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # Get the work from the queue and expand the tuple
+            try:
+                review = self.queue.get()
+                con1 = get_connector()
+                try:
+                    fix_missing_review(review[0], review[1], con1)
+                finally:
+                    self.queue.task_done()
+            except:
+                logger.exception("Error before processing")
+                print("Error before processing")
+            finally:
+                con1.close()
+
+
+def fix_missing_review(review_id, response_body, con1):
+	con1.update_missed_reviews(review_id, sanitize_review_object(ast.literal_eval(response_body))['review_text'])
+
+
+def populate_missed_reviews():
+	try:
+		reviews = connector.get_missed_reviews()
+	except Exception as e:
+		logger.error('Unable to fetch review records.')
+		logger.error("Error: " + str(e))
+		print("Error")
+		return
+
+	logger.info("No of records found: " + str(len(reviews)))
+
+	try:
+		queue = Queue()
+		# Create 4 worker threads
+		for x in range(50):
+			worker = DownloadWorker3(queue)
+			# Setting daemon to True will let the main thread exit even though the workers are blocking
+			worker.daemon = True
+			worker.start()
+		for review in reviews:
+			# fix_missing_review(review[0], review[1])
+			# logger.info('Queueing {}'.format(business))
+			queue.put((review))
+		# Causes the main thread to wait for the queue to finish processing all the tasks
+		queue.join()
+	except:
+		logger.exception("Error while running parallel threads")
+		print("Error while running parallel threads")
+
+# ---------------------------------------------------
+
+
 if __name__ == '__main__':
+	parser = argparse.ArgumentParser()
+
+	parser.add_argument('--missed_reviews', dest='missed_reviews', default=False, action="store_true", help='Fetch businesses (Default:False)')
+
+	input_values = parser.parse_args()
+
 	# add_total_photos_for_reviews_backlog()
 	# decode_review_string()
-	extract_owner_response()
+	# extract_owner_response()
+	if input_values.missed_reviews:
+		populate_missed_reviews()

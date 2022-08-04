@@ -2,7 +2,7 @@ from datetime import datetime
 from geopy import distance
 from logger import logger
 from constants import WEB_HOST, cities
-
+import html
 
 def sanitize_str(unsanitized_str):
 	return str(unsanitized_str or '')
@@ -152,7 +152,8 @@ def sanitize_review_object(review):
 		user_id = None
 	try:
 		review_text = html.unescape(review['comment']['text']).replace('<br>', '').replace('<br/>', '').replace('</br>', '')
-	except:
+	except Exception as e:
+		print("Error " + e)
 		review_text = None
 	try:
 		rating = review['rating']

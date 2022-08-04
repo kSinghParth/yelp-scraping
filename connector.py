@@ -275,6 +275,27 @@ class Connector():
 
         return reviews
 
+    def get_missed_reviews(self):
+        sql = 'SELECT review_id, response_body from yelp_reviews where check_in=2 and review_text is null limit 10000'
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [])
+
+        reviews = cursor.fetchall()
+        print(len(reviews))
+
+        return reviews
+
+    def update_missed_reviews(self, review_id, review_text):
+        sql = 'update yelp_reviews set review_text = %s, check_in = 1 where review_id = %s'
+
+        val = [
+            review_text, review_id
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def get_review_info_for_backlog(self):
         sql = 'SELECT review_id, response_body from yelp_reviews where response_body is not null'
 
