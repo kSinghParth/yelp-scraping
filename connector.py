@@ -107,7 +107,7 @@ class Connector():
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
             'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url, check_in ) '\
             'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 2 as tmp '
-            # 'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1'
+#            'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1'
 
         val = [
             review['id'], review['business_id'], review['user_id'],
@@ -264,8 +264,41 @@ class Connector():
 
         return reviews
 
+    def update_empty_owner_response(self, review_id):
+        sql = 'UPDATE yelp_reviews set check_in = 0 where review_id = %s'
+
+        val = [
+            review_id
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    def update_owner_response(self, review_id, response):
+        sql = 'UPDATE yelp_reviews set response_comment=%s, check_in = 0 where review_id = %s'
+
+        val = [
+            response['response_id'], review_id
+        ]
+
+        self.connection.cursor().execute(sql, val)
+
+        sql = 'INSERT into yelp_reviews_response (response_id, owner_id, response_comment, response_date,'\
+              'response_display_name, response_owner_role, owner_src) '\
+              'SELECT %s, %s, %s, %s, %s, %s, %s'
+
+        val = [
+            response['response_id'], response['owner_id'],
+            response['response_comment'], response['response_date'],
+            response['response_display_name'], response['response_owner_role'],
+            response['owner_src']
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def get_reviews_for_owner_response(self):
-        sql = 'SELECT review_id, response_body from yelp_reviews limit 10'
+        sql = 'SELECT review_id, response_body from yelp_reviews where check_in = 1 limit 1000000'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])

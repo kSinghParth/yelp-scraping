@@ -50,3 +50,5 @@ There are three parts to the script (or three scripts) -
 Function populate_missed_reviews is used to populate these reviews.
 
 `python get_reviews.py --missed_reviews`
+
+2. During the initial run of the script, the owner's response to the reviews were not tabulated in the DB as a separate entity. All these entries have check_in flag set as 1.

@@ -7,7 +7,7 @@ import html
 import argparse
 
 from connector import connector, get_connector
-from util import sanitize_business_url, sanitize_review_object, sanitize_user_object
+from util import *
 from constants import REVIEW_PATH
 from requester import request_json
 from logger import logger
@@ -226,6 +226,41 @@ def decode_review_string():
 		print("Error while running parallel threads")
 
 
+# ----------- Adding owner response ---------
+
+
+class DownloadWorker4(Thread):
+
+    def __init__(self, queue):
+        Thread.__init__(self)
+        self.queue = queue
+
+    def run(self):
+        while True:
+            # Get the work from the queue and expand the tuple
+            try:
+                review = self.queue.get()
+                con1 = get_connector()
+                try:
+                    add_owner_response(review[0], review[1], con1)
+                finally:
+                    self.queue.task_done()
+            except:
+                logger.exception("Error before processing")
+                print("Error before processing")
+            finally:
+                con1.close()
+
+
+def add_owner_response(review_id, response_body, con1):
+	owner_response = ast.literal_eval(response_body)['businessOwnerReplies']
+	if owner_response is None:
+		con1.update_empty_owner_response(review_id)
+	else:
+		# connector.update_owner_response(review_id)
+		con1.update_owner_response(review_id, sanitize_owner_object(owner_response[0]))
+
+
 def extract_owner_response():
 	try:
 		reviews = connector.get_reviews_for_owner_response()
@@ -240,15 +275,14 @@ def extract_owner_response():
 	try:
 		queue = Queue()
 		# Create 4 worker threads
-		# for x in range(50):
-		# 	worker = DownloadWorker3(queue)
-		# 	# Setting daemon to True will let the main thread exit even though the workers are blocking
-		# 	worker.daemon = True
-		# 	worker.start()
+		for x in range(50):
+			worker = DownloadWorker4(queue)
+			# Setting daemon to True will let the main thread exit even though the workers are blocking
+			worker.daemon = True
+			worker.start()
 		for review in reviews:
-			print(ast.literal_eval(review[1])['businessOwnerReplies'])
-			print(review[0])
-			# queue.put((review))
+			# add_owner_response(review[0], review[1])
+			queue.put((review))
 		# Causes the main thread to wait for the queue to finish processing all the tasks
 		queue.join()
 	except:
@@ -322,11 +356,13 @@ if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 
 	parser.add_argument('--missed_reviews', dest='missed_reviews', default=False, action="store_true", help='Fetch businesses (Default:False)')
+	parser.add_argument('--owner_response', dest='owner_response', default=False, action="store_true", help='Fetch businesses (Default:False)')
 
 	input_values = parser.parse_args()
 
 	# add_total_photos_for_reviews_backlog()
 	# decode_review_string()
-	# extract_owner_response()
 	if input_values.missed_reviews:
 		populate_missed_reviews()
+	if input_values.owner_response:
+		extract_owner_response()

@@ -4,6 +4,7 @@ from logger import logger
 from constants import WEB_HOST, cities
 import html
 
+
 def sanitize_str(unsanitized_str):
 	return str(unsanitized_str or '')
 
@@ -132,6 +133,46 @@ def sanitize_business_object(business):
 		'alias': alias,
 		'image_url': image_url,
 		'transactions_str': transactions_str
+	}
+
+
+def sanitize_owner_object(response):
+	try:
+		response_id = response['id']
+	except:
+		response_id = 'xxxxx' + str(datetime.now().timestamp())
+	try:
+		owner_id = response['owner']['id']
+	except:
+		owner_id = None
+	try:
+		response_comment = html.unescape(response['comment']).replace('<br>', '').replace('<br/>', '').replace('</br>', '')
+	except:
+		response_comment = None
+	try:
+		response_date = datetime.strptime(response['localizedDate'], '%m/%d/%Y')
+	except:
+		response_date = None
+	try:
+		response_display_name = response['owner']['displayName']
+	except:
+		response_display_name = None
+	try:
+		response_owner_role = response['owner']['role']
+	except:
+		response_owner_role = None
+	try:
+		owner_src = response['owner']['avatarSrc']
+	except:
+		owner_src = None
+	return {
+		'response_id': response_id,
+		'owner_id': owner_id,
+		'response_comment': response_comment,
+		'response_date': response_date,
+		'response_display_name': response_display_name,
+		'response_owner_role': response_owner_role,
+		'owner_src': owner_src
 	}
 
 
