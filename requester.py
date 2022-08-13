@@ -77,7 +77,6 @@ def generic_request(host, path, url_params=None, with_token=False, with_proxy=Tr
                     raise Exception("Unable to fetch data from url " + url)
             else:
                 logger.info("Request successful")
-                print("Returning")
                 return response
         except Exception as e:
             if i == 9:

@@ -42,13 +42,26 @@ There are three parts to the script (or three scripts) -
 
 3. get_image_backlog.py
 
+## Phase 3
+
+1. Rerunning the get_reviews script to update all the reviews.
+    We will use the attribute flag in yelp_business table for this.
+    Null - Reviews not updated
+    1 - Reviews updated
+
+    We also had to change the sorting order of reviews in the [constants file](constants.py)
+
+
+2. Fixing all the missing/invalid data. Please find fixes below.
 
 ### Fixes
 
-1. Reviews not populated after the html encodings were removed. Luckily, the check_in flag in yelp_reviews table was set to 2 for all these new reviews.
+1. Reviews not populated after the html encodings were removed. The check_in flag in yelp_reviews table was set to 2 for all these new reviews.
 
 Function populate_missed_reviews is used to populate these reviews.
 
 `python get_reviews.py --missed_reviews`
 
 2. During the initial run of the script, the owner's response to the reviews were not tabulated in the DB as a separate entity. All these entries have check_in flag set as 1.
+
+`python get_reviews.py --owner_response `

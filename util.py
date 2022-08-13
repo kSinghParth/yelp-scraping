@@ -3,6 +3,12 @@ from geopy import distance
 from logger import logger
 from constants import WEB_HOST, cities
 import html
+import json
+
+
+def write_json_to_file(string):
+	with open('./a.json', 'w') as f:
+		json.dump(string, f)
 
 
 def sanitize_str(unsanitized_str):
@@ -228,6 +234,10 @@ def sanitize_review_object(review):
 		photos_url = WEB_HOST + review['photosUrl']
 	except:
 		photos_url = None
+	try:
+		response_comment_id = review['businessOwnerReplies'][0]['id']
+	except:
+		response_comment_id = None
 
 	return {
 		'id': review_id,
@@ -242,7 +252,8 @@ def sanitize_review_object(review):
 		'funny': funny,
 		'response_body': str(review),
 		'total_photos': total_photos,
-		'photos_url': photos_url
+		'photos_url': photos_url,
+		'response_comment_id': response_comment_id
 
 	}
 

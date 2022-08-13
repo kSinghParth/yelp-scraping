@@ -27,7 +27,7 @@ class DownloadWorker(Thread):
                 con1 = get_connector()
                 try:
                     added = recursive_fetch(business, con1)
-                    if added > 0:
+                    if added is not None and added > 0:
                         logger.info('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
                         print('Added business: ' + business[0] + ' reviews: ' + str(business[1]) + ' counted: ' + str(added))
                 finally:
@@ -68,7 +68,7 @@ def recursive_fetch(business, connector1):
 	review_count = business[1]
 	business_id = business[2]
 	counted = business[3]
-
+	print("Business: " + str(business))
 	if counted is None:
 		counted = 0
 	s_url = sanitize_business_url(url) + REVIEW_PATH
@@ -76,24 +76,36 @@ def recursive_fetch(business, connector1):
 		while True:
 			new_url = s_url + str(counted)
 			response = request_json(new_url, '', with_token=False, with_proxy=True)
-			# print(response)
+			# write_json_to_file(response)
 			reviews = response['reviews']
-			# print(str(review_count) + " " + str(response['pagination']['totalResults']))
+			print(str(review_count) + " " + str(response['pagination']['totalResults']))
 			if review_count != response['pagination']['totalResults']:
 				review_count = response['pagination']['totalResults']
 				connector1.update_total_reviews(business_id, review_count)
 			if len(reviews) == 0:
+				connector1.update_business_flag(business_id)
 				break
 			counted = counted + len(reviews)
 			for review in reviews:
 				# logger.info('Review: ' + str(review))
-				connector1.enter_review_record(sanitize_review_object(review))
-				user = review['user']
-				# logger.info('User: ' + str(user))
-				user['id'] = review['userId']
-				connector1.enter_user_record(sanitize_user_object(user))
+				# print(review['id'])
+				try:
+					connector1.enter_review_record(sanitize_review_object(review))
+					owner_response = review['businessOwnerReplies']
+					if owner_response is not None:
+						print("Owner's response exists")
+						# connector.update_owner_response(review_id)
+						con1.add_owner_response(sanitize_owner_object(owner_response[0]))
+
+					user = review['user']
+					# logger.info('User: ' + str(user))
+					user['id'] = review['userId']
+					connector1.enter_user_record(sanitize_user_object(user))
+				except:
+					pass
 			# time.sleep(0.2)
 			if counted >= review_count:
+				connector1.update_business_flag(business_id)
 				break
 	except:
 		logger.error('Faced the following error for url ' + new_url)
@@ -161,7 +173,7 @@ def query_review_api():
 		try:
 			queue = Queue()
 			# Create 4 worker threads
-			for x in range(5):
+			for x in range(30):
 				worker = DownloadWorker(queue)
 				# Setting daemon to True will let the main thread exit even though the workers are blocking
 				worker.daemon = True
@@ -257,37 +269,40 @@ def add_owner_response(review_id, response_body, con1):
 	if owner_response is None:
 		con1.update_empty_owner_response(review_id)
 	else:
+		print("Owner's response exists")
 		# connector.update_owner_response(review_id)
 		con1.update_owner_response(review_id, sanitize_owner_object(owner_response[0]))
 
 
 def extract_owner_response():
-	try:
-		reviews = connector.get_reviews_for_owner_response()
-	except Exception as e:
-		logger.error('Unable to fetch review records.')
-		logger.error("Error: " + str(e))
-		print("Error")
-		return
+	ct = 1
+	while ct > 0:
+		try:
+			reviews = connector.get_reviews_for_owner_response()
+		except Exception as e:
+			logger.error('Unable to fetch review records.')
+			logger.error("Error: " + str(e))
+			print("Error")
+			return
 
-	# reviews = [(0, 'I&#39;m only giving two stars cause the place just opened but wow does this place deserve one star. Almost every single employee I&#39;ve interacted with has no clue what they&#39;re doing, they avoid customers because they don&#39;t know what to do with them. My wings never have nearly enough sauce, sometimes the foods even cold. Tonight I came for the boneless special, to find out they ran out of the boneless wings and I have to wait 40 min because they&#39;re out getting more boneless wings, then I find out they have to use chicken nuggets instead. Sigh. Wait is almost always more than half hour anytime after the evening. On nights with specials it&#39;s always over an hour. Hopefully it gets better.<br><br>Never mind, they just covered my whole meal plus dessert, and gave me 4 free wing coupons for my next visit. They felt really bad, maybe they just really messed up tonight. It is true they just opened.')]
-	logger.info("No of records found: " + str(len(reviews)))
-	try:
-		queue = Queue()
-		# Create 4 worker threads
-		for x in range(50):
-			worker = DownloadWorker4(queue)
-			# Setting daemon to True will let the main thread exit even though the workers are blocking
-			worker.daemon = True
-			worker.start()
-		for review in reviews:
-			# add_owner_response(review[0], review[1])
-			queue.put((review))
-		# Causes the main thread to wait for the queue to finish processing all the tasks
-		queue.join()
-	except:
-		logger.exception("Error while running parallel threads")
-		print("Error while running parallel threads")
+		ct = len(reviews)
+		logger.info("No of records found: " + str(ct))
+		try:
+			queue = Queue()
+			# Create 4 worker threads
+			for x in range(20):
+				worker = DownloadWorker4(queue)
+				# Setting daemon to True will let the main thread exit even though the workers are blocking
+				worker.daemon = True
+				worker.start()
+			for review in reviews:
+				# add_owner_response(review[0], review[1])
+				queue.put((review))
+			# Causes the main thread to wait for the queue to finish processing all the tasks
+			queue.join()
+		except:
+			logger.exception("Error while running parallel threads")
+			print("Error while running parallel threads")
 
 
 # ----------- Fixing missed review ---------

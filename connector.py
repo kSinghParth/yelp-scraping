@@ -105,8 +105,8 @@ class Connector():
 
     def enter_review_record(self, review):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
-            'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url, check_in ) '\
-            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 2 as tmp '
+            'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url, check_in, response_comment_id ) '\
+            'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 3, %s as tmp '
 #            'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1'
 
         val = [
@@ -116,13 +116,11 @@ class Connector():
             review['useful'], review['cool'],
             review['funny'], review['response_body'],
             review['total_photos'], review['photos_url'],
-            # review['id']
+            review['response_comment_id']
         ]
 
-        print("beg")
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
-        print("end")
 
     def enter_user_record(self, user):
         sql = 'INSERT INTO yelp_users ( user_id, user_reviewCount, user_friendCount, user_photoCount, user_name, '\
@@ -165,9 +163,15 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
+    def update_business_flag(self, business_id):
+        sql = 'UPDATE yelp_business set flag = 1 where business_id = %s'
+        val = [business_id]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def update_total_reviews(self, business_id, total_reviews):
         sql = 'UPDATE yelp_business set review_count = %s where business_id = %s'
-        print("Updating")
         val = [total_reviews, business_id]
 
         self.connection.cursor().execute(sql, val)
@@ -181,17 +185,21 @@ class Connector():
         self.connection.commit()
 
     def get_business_records_for_reviews(self):
-        sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
-            ' where review_count!= 0 and business_id not in (select distinct(business_id) from `yelp_reviews`)'
+        # sql = 'SELECT business_url, review_count, business_id, 0 from `yelp_business`  '\
+        #     ' where review_count!= 0 and business_id not in (select distinct(business_id) from `yelp_reviews`)'
 
-        # sql = 'SELECT b.business_url, b.review_count, b.business_id,  count(r.review_id) FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id group by b.`business_id`having count(r.review_id) < b.review_count limit 1'
+        sql = 'SELECT b.business_url, b.review_count, b.business_id,  count(r.review_id) '\
+            ' FROM yelp_business b inner join `yelp_reviews` r '\
+            ' on r.business_id = b.business_id '\
+            ' where flag is Null '\
+            ' group by b.`business_id` limit 1'
 
-#         sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
-#             ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
-#             ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
-#             ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
-#             ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count) '
-# #           ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
+        # sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
+        #     ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
+        #     ' FROM yelp_business b inner join `yelp_reviews` r on r.business_id = b.business_id '\
+        #     ' INNER JOIN yelp_users u on u.user_id = r.user_id group by b.`business_id`) as tmp on tmp.b_id = b.business_id '\
+        #     ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count) '
+        #     ' WHERE review_count>0 and (tmp.r_counted is null or tmp.r_counted < review_count ) order by business_id desc'
 
         cursor = self.connection.cursor()
         cursor.execute(sql, [])
@@ -274,8 +282,9 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
+    # Coming form the fix script
     def update_owner_response(self, review_id, response):
-        sql = 'UPDATE yelp_reviews set response_comment=%s, check_in = 0 where review_id = %s'
+        sql = 'UPDATE yelp_reviews set response_comment_id=%s, check_in = 0 where review_id = %s'
 
         val = [
             response['response_id'], review_id
@@ -283,6 +292,22 @@ class Connector():
 
         self.connection.cursor().execute(sql, val)
 
+        sql = 'INSERT into yelp_reviews_response (response_id, owner_id, response_comment, response_date,'\
+              'response_display_name, response_owner_role, owner_src) '\
+              'SELECT %s, %s, %s, %s, %s, %s, %s'
+
+        val = [
+            response['response_id'], response['owner_id'],
+            response['response_comment'], response['response_date'],
+            response['response_display_name'], response['response_owner_role'],
+            response['owner_src']
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+    # Comign from the main fetch_review script
+    def add_owner_response(self, response):
         sql = 'INSERT into yelp_reviews_response (response_id, owner_id, response_comment, response_date,'\
               'response_display_name, response_owner_role, owner_src) '\
               'SELECT %s, %s, %s, %s, %s, %s, %s'
