@@ -140,6 +140,13 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
+    def update_review_photo_completeion(self, review_id):
+        sql = 'UPDATE yelp_reviews set check_in = 4 where review_id = %s'
+        val = [review_id]
+
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
     def enter_photo_record(self, photo):
         sql = 'INSERT INTO yelp_photos ( image_id, review_id, caption, image_url, web_url, '\
             'alt_text, width, height, image_date, src_set) '\
@@ -244,7 +251,10 @@ class Connector():
 
     def get_review_photo_info(self):
         sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews`  '\
-            ' where total_photos != 0 and review_id not in (select distinct(review_id) from `yelp_photos`)'
+            ' where total_photos != 0 and check_in = 3 limit 1000'
+
+        # sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews`  '\
+        #     ' where total_photos != 0 and review_id not in (select distinct(review_id) from `yelp_photos`)'
 
         # sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews` yr '\
         #     ' LEFT JOIN (SELECT p.review_id r_id, count(p.image_id) p_counted, r.total_photos p_total '\

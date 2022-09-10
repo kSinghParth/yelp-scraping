@@ -65,3 +65,5 @@ Function populate_missed_reviews is used to populate these reviews.
 2. During the initial run of the script, the owner's response to the reviews were not tabulated in the DB as a separate entity. All these entries have check_in flag set as 1.
 
 `python get_reviews.py --owner_response `
+
+3. All new reviews collected in the next iteration have been marked with flag 3. We will use this to fetch their photos and update the flag to 4.

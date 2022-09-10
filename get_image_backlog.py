@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from threading import Thread
 from queue import Queue
 
-from connector import get_connector, connector
+from connector import get_connector
 from logger import logger
 from util import sanitize_image_object
 from requester import generic_request
@@ -21,19 +21,16 @@ class DownloadWorker(Thread):
             # Get the work from the queue and expand the tuple
             try:
                 review = self.queue.get()
-                con1 = get_connector()
                 try:
-                    fetch_images(review, con1)
+                    fetch_images(review)
                 finally:
                     self.queue.task_done()
             except:
                 logger.exception("Error before processing")
                 print("Error before processing")
-            finally:
-                con1.close()
 
 
-def fetch_images(review, con1):
+def fetch_images(review):
 	try:
 		review_id = review[0]
 		image_date = review[3]
@@ -57,20 +54,36 @@ def fetch_images(review, con1):
 				web_photos = soup.select('#super-container > div.container > div > div.media-landing.js-media-landing > div.media-landing_gallery.photos > ul > li > div')
 				logger.info("no of images: " + str(len(web_photos)))
 				tmp_ct = 0
-				for web_photo in web_photos:
-					photo = {}
-					photo['id'] = web_photo['data-photo-id']
-					photo['review_id'] = review_id
-					photo['image_url'] = web_photo.img['src']
-					photo['src_set'] = web_photo.img['srcset']
-					photo['height'] = web_photo.img['height']
-					photo['width'] = web_photo.img['width']
-					photo['alt_text'] = web_photo.img['alt']
-					photo['web_url'] = WEB_HOST + web_photo.a['href']
-					photo['image_date'] = image_date
-					photo['caption'] = None
-					con1.enter_photo_record(photo)
-					tmp_ct = tmp_ct + 1
+				con_ct = 0
+				while con_ct < 5:
+					try:
+						con1 = get_connector()
+						con_ct = 10
+					except Exception as e:
+						print(e)
+						print("Connector not found")
+					con_ct += 1
+				if con_ct < 10:
+					return
+				try:
+					for web_photo in web_photos:
+						photo = {}
+						photo['id'] = web_photo['data-photo-id']
+						photo['review_id'] = review_id
+						photo['image_url'] = web_photo.img['src']
+						photo['src_set'] = web_photo.img['srcset']
+						photo['height'] = web_photo.img['height']
+						photo['width'] = web_photo.img['width']
+						photo['alt_text'] = web_photo.img['alt']
+						photo['web_url'] = WEB_HOST + web_photo.a['href']
+						photo['image_date'] = image_date
+						photo['caption'] = None
+						con1.enter_photo_record(photo)
+						tmp_ct = tmp_ct + 1
+				except:
+					pass
+				finally:
+					con1.close()
 				logger.info("Added: " + str(tmp_ct))
 				print("Added: " + str(tmp_ct))
 				if tmp_ct <= 30:
@@ -78,10 +91,43 @@ def fetch_images(review, con1):
 				ct = ct + tmp_ct
 		else:
 			logger.info('Not fetching from web')
-			for photo in photos:
-				photo['reviewId'] = review_id
-				photo['imageDate'] = image_date
-				con1.enter_photo_record(sanitize_image_object(photo))
+			con_ct = 0
+			while con_ct < 5:
+				try:
+					con1 = get_connector()
+					con_ct = 10
+				except Exception as e:
+					print(e)
+					print("Connector not found")
+				con_ct += 1
+			if con_ct < 10:
+				return
+			try:
+				for photo in photos:
+					photo['reviewId'] = review_id
+					photo['imageDate'] = image_date
+					con1.enter_photo_record(sanitize_image_object(photo))
+			except:
+				pass
+			finally:
+				con1.close()
+		con_ct = 0
+		while con_ct < 5:
+			try:
+				con1 = get_connector()
+				con_ct = 10
+			except Exception as e:
+				print(e)
+				print("Connector not found")
+			con_ct += 1
+		if con_ct < 10:
+			return
+		try:
+			con1.update_review_photo_completeion(review_id)
+		except:
+			pass
+		finally:
+			con1.close()
 		print("Successful image population for review: " + review_id)
 		logger.info("Successful image population for review: " + review_id)
 	except Exception:
@@ -89,13 +135,19 @@ def fetch_images(review, con1):
 		logger.error(web_photo)
 		logger.exception("Error: ")
 		print("Error while saving image for review id: " + review_id)
+	finally:
+		con1.close()
 
 
 def populate_review_images_backlog():
 	try:
-		reviews = connector.get_review_photo_info()
+		cont = get_connector()
+		reviews = cont.get_review_photo_info()
 	except:
 		logger.error('Unable to fetch review records. Trying to fetch all records.')
+		return
+	finally:
+		cont.close()
 
 	print("reached here in image")
 	logger.info('Total reviews to be fixed: ' + str(len(reviews)))
