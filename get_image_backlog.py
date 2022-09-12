@@ -81,7 +81,7 @@ def fetch_images(review):
 						con1.enter_photo_record(photo)
 						tmp_ct = tmp_ct + 1
 				except:
-					pass
+					return
 				finally:
 					con1.close()
 				logger.info("Added: " + str(tmp_ct))
@@ -108,7 +108,7 @@ def fetch_images(review):
 					photo['imageDate'] = image_date
 					con1.enter_photo_record(sanitize_image_object(photo))
 			except:
-				pass
+				return
 			finally:
 				con1.close()
 		con_ct = 0

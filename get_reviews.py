@@ -78,7 +78,7 @@ def recursive_fetch(business, connector1):
 			response = request_json(new_url, '', with_token=False, with_proxy=True)
 			# write_json_to_file(response)
 			reviews = response['reviews']
-			print(str(review_count) + " " + str(response['pagination']['totalResults']))
+			print(str(review_count) + " " + str(response['pagination']['totalResults'])+" "+str(counted))
 			if review_count != response['pagination']['totalResults']:
 				review_count = response['pagination']['totalResults']
 				connector1.update_total_reviews(business_id, review_count)
@@ -101,7 +101,9 @@ def recursive_fetch(business, connector1):
 					# logger.info('User: ' + str(user))
 					user['id'] = review['userId']
 					connector1.enter_user_record(sanitize_user_object(user))
-				except:
+				except Exception as e:
+					print(review['id'])
+					print(e)
 					pass
 			# time.sleep(0.2)
 			if counted >= review_count:
