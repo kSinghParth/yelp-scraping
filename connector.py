@@ -103,14 +103,14 @@ class Connector():
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
 
-    def enter_review_record(self, review):
+    def enter_review_record(self, review, business_id):
         sql = 'INSERT INTO yelp_reviews ( review_id, business_id, user_id, review_text, review_rating, '\
             'language, review_date, useful_votes, cool_votes, funny_votes, response_body, total_photos, photos_url, check_in, response_comment_id ) '\
             'SELECT  %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 3, %s as tmp '
 #            'WHERE NOT EXISTS (SELECT 1 FROM yelp_reviews WHERE review_id = %s) LIMIT 1'
 
         val = [
-            review['id'], review['business_id'], review['user_id'],
+            review['id'], business_id, review['user_id'],
             review['review_text'], review['rating'],
             review['language'], review['local_date'],
             review['useful'], review['cool'],
@@ -139,6 +139,39 @@ class Connector():
 
         self.connection.cursor().execute(sql, val)
         self.connection.commit()
+
+    def add_updated_yelp_business_ids(self, new_business_id, old_business_id):
+        sql = 'INSERT INTO `yelp_updated_business_ids` (`old_business_id`, `new_business_id`) select %s,%s as TMP '\
+            'WHERE NOT EXISTS (SELECT 1 FROM `yelp_updated_business_ids` where `old_business_id`=%s and `new_business_id` = %s)'
+        val = [
+            old_business_id, new_business_id, old_business_id, new_business_id
+        ]
+
+        self.connection.cursor().execute(sql, val)
+        sql = 'update yelp_reviews set business_id = %s where business_id = %s'
+        val = [
+            new_business_id, old_business_id
+        ]
+        self.connection.cursor().execute(sql, val)
+        self.connection.commit()
+
+        sql = "SELECT count(*) from yelp_reviews where business_id = %s"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [new_business_id])
+
+        rv_ct = cursor.fetchall()[0][0]
+
+        return rv_ct
+
+    def get_business_id_for_review(self, review_id):
+        sql = "SELECT business_id from yelp_reviews where review_id = %s"
+
+        cursor = self.connection.cursor()
+        cursor.execute(sql, [review_id])
+
+        business_id = cursor.fetchall()[0][0]
+        return business_id
 
     def update_review_photo_completeion(self, review_id):
         sql = 'UPDATE yelp_reviews set check_in = 4 where review_id = %s'
@@ -196,10 +229,10 @@ class Connector():
         #     ' where review_count!= 0 and business_id not in (select distinct(business_id) from `yelp_reviews`)'
 
         sql = 'SELECT b.business_url, b.review_count, b.business_id,  count(r.review_id) '\
-            ' FROM yelp_business b inner join `yelp_reviews` r '\
+            ' FROM yelp_business b left join `yelp_reviews` r '\
             ' on r.business_id = b.business_id '\
             ' where flag is Null '\
-            ' group by b.`business_id` limit 1'
+            ' group by b.`business_id` limit 100'
 
         # sql = 'SELECT business_url, review_count, business_id, tmp.r_counted from `yelp_business` b '\
         #     ' LEFT JOIN (SELECT b.business_id b_id, count(r.review_id) r_counted, b.review_count r_total '\
@@ -251,7 +284,7 @@ class Connector():
 
     def get_review_photo_info(self):
         sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews`  '\
-            ' where total_photos != 0 and check_in = 3 limit 1000'
+            ' where total_photos != 0 and check_in = 3 limit 100000'
 
         # sql = 'SELECT review_id, total_photos, response_body, review_date from `yelp_reviews`  '\
         #     ' where total_photos != 0 and review_id not in (select distinct(review_id) from `yelp_photos`)'

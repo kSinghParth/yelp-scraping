@@ -68,6 +68,7 @@ def recursive_fetch(business, connector1):
 	review_count = business[1]
 	business_id = business[2]
 	counted = business[3]
+	additional_business_ids = set([business_id])
 	print("Business: " + str(business))
 	if counted is None:
 		counted = 0
@@ -83,6 +84,7 @@ def recursive_fetch(business, connector1):
 				review_count = response['pagination']['totalResults']
 				connector1.update_total_reviews(business_id, review_count)
 			if len(reviews) == 0:
+				print("hereereere?")
 				connector1.update_business_flag(business_id)
 				break
 			counted = counted + len(reviews)
@@ -90,25 +92,34 @@ def recursive_fetch(business, connector1):
 				# logger.info('Review: ' + str(review))
 				# print(review['id'])
 				try:
-					connector1.enter_review_record(sanitize_review_object(review))
+					sanitized_review = sanitize_review_object(review)
+					if not sanitized_review['business_id'] in additional_business_ids:
+						counted = connector1.add_updated_yelp_business_ids(business_id, sanitized_review['business_id'])
+						additional_business_ids.add(sanitized_review['business_id'])
+					connector1.enter_review_record(sanitized_review, business_id)
 					owner_response = review['businessOwnerReplies']
 					if owner_response is not None:
-						print("Owner's response exists")
+						# print("Owner's response exists")
 						# connector.update_owner_response(review_id)
-						con1.add_owner_response(sanitize_owner_object(owner_response[0]))
+						connector1.add_owner_response(sanitize_owner_object(owner_response[0]))
 
 					user = review['user']
 					# logger.info('User: ' + str(user))
 					user['id'] = review['userId']
 					connector1.enter_user_record(sanitize_user_object(user))
 				except Exception as e:
-					print(review['id'])
+					# print(review['id'])
 					print(e)
-					pass
+					if "PRIMARY" in str(e):
+						old_b_id = connector1.get_business_id_for_review(review['id'])
+						if not old_b_id in additional_business_ids:
+							counted = connector1.add_updated_yelp_business_ids(business_id, old_b_id)
+							additional_business_ids.add(old_b_id)
 			# time.sleep(0.2)
 			if counted >= review_count:
 				connector1.update_business_flag(business_id)
 				break
+
 	except:
 		logger.error('Faced the following error for url ' + new_url)
 		logger.exception('Error: ')
@@ -175,7 +186,7 @@ def query_review_api():
 		try:
 			queue = Queue()
 			# Create 4 worker threads
-			for x in range(30):
+			for x in range(20):
 				worker = DownloadWorker(queue)
 				# Setting daemon to True will let the main thread exit even though the workers are blocking
 				worker.daemon = True
